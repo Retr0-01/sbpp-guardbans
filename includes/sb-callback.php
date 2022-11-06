@@ -2743,6 +2743,8 @@ function AddComment($bid, $ctype, $ctext, $page)
         $redir = "?p=banlist" . $pagelink;
     } elseif($ctype=="C") {
         $redir = "?p=commslist" . $pagelink;
+    } else if ($ctype == "T") {
+        $redir = "?p=teambans".$pagelink;
     } elseif($ctype=="S") {
         $redir = "?p=admin&c=bans#^2";
     } elseif($ctype=="P") {
@@ -2794,6 +2796,8 @@ function EditComment($cid, $ctype, $ctext, $page)
         $redir = "?p=banlist" . $pagelink;
     } elseif($ctype=="C") {
         $redir = "?p=commslist" . $pagelink;
+    } else if ($ctype == "T") {
+        $redir = "?p=teambans".$pagelink;
     } elseif($ctype=="S") {
         $redir = "?p=admin&c=bans#^2";
     } elseif($ctype=="P") {
@@ -2848,6 +2852,8 @@ function RemoveComment($cid, $ctype, $page)
         $redir = "?p=banlist" . $pagelink;
     } elseif($ctype=="C") {
         $redir = "?p=commslist" . $pagelink;
+    } else if ($ctype == "T") {
+        $redir = "?p=teambans".$pagelink;
     } else {
         $redir = "?p=admin&c=bans";
     }

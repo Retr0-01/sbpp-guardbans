@@ -130,6 +130,7 @@ if (DEBUG_MODE) {
 
 Auth::init($GLOBALS['PDO']);
 
+define("TEAMBANS_DB_NAME", "sourcemod.teambans");
 // ---------------------------------------------------
 // Setup our user manager
 // ---------------------------------------------------

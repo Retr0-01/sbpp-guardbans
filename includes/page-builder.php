@@ -31,6 +31,8 @@ function route($fallback)
             return ['Ban List', '/page.banlist.php'];
         case 'commslist':
             return ['Communications Block List', '/page.commslist.php'];
+         case "teambans":
+            return ["Jailbreak Guardbans List", "/page.teambans.php"];
         case 'servers':
             return ['Server List', '/page.servers.php'];
         case 'protest':
@@ -94,6 +96,14 @@ function route($fallback)
                             return ['Edit Block Details', '/admin.edit.comms.php'];
                         default:
                             return ['Comms', '/admin.comms.php'];
+                    }
+                case 'teambans':
+                    CheckAdminAccess(ADMIN_OWNER|ADMIN_ADD_BAN|ADMIN_EDIT_OWN_BANS|ADMIN_EDIT_GROUP_BANS|ADMIN_EDIT_ALL_BANS|ADMIN_BAN_PROTESTS|ADMIN_BAN_SUBMISSIONS);
+                    switch ($option) {
+                        case 'edit':
+                            return ['Edit Teamban Details', '/admin.edit.teamban.php'];
+                        default:
+                            return ['Teambans', '/admin.teambans.php'];
                     }
                 case 'mods':
                     CheckAdminAccess(ADMIN_OWNER|ADMIN_LIST_MODS|ADMIN_ADD_MODS|ADMIN_EDIT_MODS|ADMIN_DELETE_MODS);

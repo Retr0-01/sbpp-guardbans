@@ -314,6 +314,23 @@ function RemoveBan(id, key, page, name, confirm, bulk)
 	}
 }
 
+function RemoveTeamBan(id, key, page, name, confirm)
+{
+	if(confirm==0)
+	{
+		ShowBox('Delete Teamban', 'Are you sure you want to delete the team ban for \''+ name +"\'"+'?', 'blue', '', true);
+		$('dialog-control').setHTML('<input type="button" onclick="RemoveTeamBan(\''+id+'\', \''+key+'\', \''+page+'\', \''+addslashes(name.replace(/\'/g,'\\\''))+'\', \'1\''+');" name="rban" class="btn ok" onmouseover="ButtonOver(\'rban\')" onmouseout="ButtonOver(\'rban\')" id="rban" value="Remove Teamban" />&nbsp;<input type="button" onclick="closeMsg(\'\');$(\'bulk_action\').options[0].selected=true;" name="astop" class="btn cancel" onmouseover="ButtonOver(\'astop\')" onmouseout="ButtonOver(\'astop\')" id="astop" value="Cancel" />');
+	} 
+	else if(confirm==1)
+	{
+		if(page != "")
+			var pagelink = page;
+		else
+			var pagelink = "";
+		window.location = "index.php?p=teambans" + pagelink + "&a=delete&id="+ id +"&key="+ key;
+	}
+}
+
 function UnbanBan(id, key, page, name, popup, bulk)
 {
 	if(popup==1) {
@@ -334,6 +351,23 @@ function UnbanBan(id, key, page, name, popup, bulk)
 			$('ureason.msg').setStyle('display', 'none');
 		}
 		window.location = "index.php?p=banlist" + pagelink + "&a=unban&id="+ id +"&key="+ key +"&ureason="+ reason +(bulk=="true"?"&bulk=true":"");
+	}
+}
+
+function UnbanTeamBan(id, key, page, name, confirm)
+{
+	if(confirm==1)
+	{
+		ShowBox('Remove Teamban', 'Are you sure you want to remove the teamban for \''+ name +"\'"+'?', 'blue', '', true);
+		$('dialog-control').setHTML('<input type="button" onclick="UnbanTeamBan(\''+id+'\', \''+key+'\', \''+page+'\', \''+addslashes(name.replace(/\'/g,'\\\''))+'\', \'0\''+');" name="uban" class="btn ok" onmouseover="ButtonOver(\'uban\')" onmouseout="ButtonOver(\'uban\')" id="uban" value="Unban Teamban" />&nbsp;<input type="button" onclick="closeMsg(\'\');$(\'bulk_action\').options[0].selected=true;" name="astop" class="btn cancel" onmouseover="ButtonOver(\'astop\')" onmouseout="ButtonOver(\'astop\')" id="astop" value="Cancel" />');
+	}
+	else if(confirm==0)
+	{
+		if(page != "")
+			var pagelink = page;
+		else
+			var pagelink = "";
+		window.location = "index.php?p=teambans" + pagelink + "&a=unban&id="+ id +"&key="+ key;
 	}
 }
 
@@ -850,6 +884,58 @@ function search_bans()
 	if(type!="" && input!="")
 		window.location = "index.php?p=banlist&advSearch=" + input + "&advType=" + type;
 }
+
+function search_teambans()
+{
+	var type = "";
+	var input = "";
+	if($('name').checked)
+	{
+		type = "name";
+		input = $('name_').value;
+	}
+	if($('steamid').checked)
+	{
+		type = "steamid";
+		input = $('steamid_').value;
+	}
+	if($('reason').checked)
+	{
+		type = "reason";
+		input = $('reason_').value;
+	}
+	if($('date').checked)
+	{
+		type = "date";
+		input = $('day').value + "," + $('month').value + "," + $('year').value;
+	}
+	if($('length').checked)
+	{
+		type = "length";
+		if($('length_').value=="other")
+			var length = $('other_length').value;
+		else
+			var length = $('length_').value
+		input = $('length_type').value + "," + length;
+	}
+	if($('time_left').checked)
+	{
+		type = "timeLeft";
+		if($('timeLeft_').value=="other")
+			var length = $('other_length').value;
+		else
+			var length = $('length_').value
+		input = $('length_type').value + "," + length;
+	}
+	if($('admin').checked)
+	{
+		type = "admin";
+		input = $('ban_admin').value;
+	}
+	if(type!="" && input!="")
+		window.location = "index.php?p=teambans&search=" + input + "&searchType=" + type;
+}
+
 var webSelected = new Array();
 var srvSelected = new Array();
 function getMultiple(ob, type) {
