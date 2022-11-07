@@ -117,7 +117,10 @@ if (isset($_SESSION["hideinactive"])) {
 }
 
 if (!isset($_GET['search'])) {
-    $res = $GLOBALS['db']->Execute("SELECT * FROM " . TEAMBANS_DB_NAME . $hideinactiven . ' ORDER BY timestamp DESC ' . " LIMIT " . $BansPerPage);
+    $res = $GLOBALS['db']->Execute("SELECT * FROM " . TEAMBANS_DB_NAME . $hideinactiven . ' ORDER BY timestamp DESC ' . " LIMIT ?,?", array(
+        intval($BansStart),
+        intval($BansPerPage)
+    ));
 
     $res_count  = $GLOBALS['db']->Execute("SELECT count(id) FROM " . TEAMBANS_DB_NAME . $hideinactiven);
     $searchlink = "";
@@ -135,97 +138,33 @@ if (!isset($_GET['search'])) {
     $searchValue = trim($_GET['search']);
     $searchType = $_GET['searchType'];
 
-    switch ($type) {
+    switch ($searchType) {
         case "name":
             $where   = "WHERE offender_name LIKE ?";
             $searchCriteria = array(
-                "%$value%"
+                "%$searchValue%"
             );
             break;
         case "steamid":
             $where   = "WHERE offender_id = ?";
             $searchCriteria = array(
-                $value
+               preg_replace('/\[U:1[^.]/', '', substr(SteamID::toSteam3($searchValue), 0, -1))
             );
             break;
         case "reason":
             $where   = "WHERE reason LIKE ?";
             $searchCriteria = array(
-                "%$value%"
-            );
-            break;
-        case "date":
-            $date    = explode(",", $value);
-            $time    = mktime(0, 0, 0, $date[1], $date[0], $date[2]);
-            $time2   = mktime(23, 59, 59, $date[1], $date[0], $date[2]);
-            $where   = "WHERE timestamp > ? AND timestamp < ?";
-            $searchCriteria = array(
-                $time,
-                $time2
-            );
-            break;
-        case "length":
-            $len         = explode(",", $value);
-            $length_type = $len[0];
-            $length      = $len[1] * 60;
-            $where       = "WHERE length ";
-            switch ($length_type) {
-                case "e":
-                    $where .= "=";
-                    break;
-                case "h":
-                    $where .= ">";
-                    break;
-                case "l":
-                    $where .= "<";
-                    break;
-                case "eh":
-                    $where .= ">=";
-                    break;
-                case "el":
-                    $where .= "<=";
-                    break;
-            }
-            $where .= " ?";
-            $searchCriteria = array(
-                $length
-            );
-            break;
-        case "timeLeft":
-            $len         = explode(",", $value);
-            $length_type = $len[0];
-            $length      = $len[1] * 60;
-            $where       = "WHERE timeleft ";
-            switch ($length_type) {
-                case "e":
-                    $where .= "=";
-                    break;
-                case "h":
-                    $where .= ">";
-                    break;
-                case "l":
-                    $where .= "<";
-                    break;
-                case "eh":
-                    $where .= ">=";
-                    break;
-                case "el":
-                    $where .= "<=";
-                    break;
-            }
-            $where .= " ?";
-            $searchCriteria = array(
-                $length
+                "%$searchValue%"
             );
             break;
         case "admin":
-            if ($GLOBALS['config']['banlist.hideadminname'] && !$userbank->is_admin()) {
+            if (Config::getBool('banlist.hideadminname') && !$userbank->is_admin()) {
                 $where   = "";
                 $searchCriteria = array();
             } else {
-                $where   = "WHERE admin_name=?";
+                $where   = "WHERE admin_id_sb_compatible=?";
                 $searchCriteria = array(
-                    $value
+                    $searchValue
                 );
             }
             break;
@@ -233,7 +172,7 @@ if (!isset($_GET['search'])) {
             $where              = "";
             $_GET['search']     = "";
             $_GET['searchType'] = "";
-            $searchCriteria           = array();
+            $searchCriteria     = array();
             break;
     }
 
@@ -242,9 +181,10 @@ if (!isset($_GET['search'])) {
         $hideinactive = $hideinactiven;
     }
 
-    $res = $GLOBALS['db']->Execute("SELECT * FROM " . TEAMBANS_DB_NAME . $where . $hideinactive . " ORDER BY timestamp DESC
-    LIMIT ?,?", array_merge($advcrit, array(intval($BansStart), intval($BansPerPage))));
+    $res = $GLOBALS['db']->Execute("SELECT * FROM " . TEAMBANS_DB_NAME . " "  . $where . $hideinactive . " ORDER BY timestamp DESC
+    LIMIT ?,?", array_merge($searchCriteria, array(intval($BansStart), intval($BansPerPage))));
 
+    $res_count  = $GLOBALS['db']->Execute("SELECT count(id) FROM " . TEAMBANS_DB_NAME . " "  . $where . $hideinactive, $searchCriteria);
     $searchlink = "&search=" . $_GET['search'] . "&searchType=" . $_GET['searchType'];
 }
 
@@ -253,7 +193,7 @@ if ($BansEnd > $BanCount) {
     $BansEnd = $BanCount;
 }
 if (!$res) {
-    echo "No Bans Found.";
+    echo "<h3>No Teambans Found</h3>";
     PageDie();
 }
 

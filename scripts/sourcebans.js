@@ -904,29 +904,6 @@ function search_teambans()
 		type = "reason";
 		input = $('reason_').value;
 	}
-	if($('date').checked)
-	{
-		type = "date";
-		input = $('day').value + "," + $('month').value + "," + $('year').value;
-	}
-	if($('length').checked)
-	{
-		type = "length";
-		if($('length_').value=="other")
-			var length = $('other_length').value;
-		else
-			var length = $('length_').value
-		input = $('length_type').value + "," + length;
-	}
-	if($('time_left').checked)
-	{
-		type = "timeLeft";
-		if($('timeLeft_').value=="other")
-			var length = $('other_length').value;
-		else
-			var length = $('length_').value
-		input = $('length_type').value + "," + length;
-	}
 	if($('admin').checked)
 	{
 		type = "admin";

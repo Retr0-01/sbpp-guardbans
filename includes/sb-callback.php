@@ -2112,8 +2112,6 @@ function AddTeamban($nickname, $steam, $length, $reason)
         $reason)
     );
 
-    $subid = $GLOBALS['db']->Insert_ID();
-
     $kickit = Config::getBool('config.enablekickit');
     if ($kickit) {
         $objResponse->addScript("ShowKickBox('".($steam)."');");

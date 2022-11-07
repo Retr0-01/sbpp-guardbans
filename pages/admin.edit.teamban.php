@@ -36,6 +36,7 @@ $errorScript = "";
 
 if (isset($_POST['name'])) {
     $_POST['steam'] = SteamID::toSteam2(trim($_POST['steam']));
+    $_POST['name'] = htmlspecialchars_decode($_POST['name'], ENT_QUOTES);
 
     // Form Validation
     $error = 0;
@@ -95,6 +96,7 @@ if (isset($_POST['name'])) {
     $res['offender_name'] = $_POST['name'];
     $res['offender_id'] = $_POST['steam'];
     $res['length'] = $_POST['banlength'];
+    $reason = htmlspecialchars_decode($reason, ENT_QUOTES);
     $res['reason'] = $reason;
 
     // Only process if there are still no errors
