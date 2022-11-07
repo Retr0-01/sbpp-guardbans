@@ -74,6 +74,7 @@ if ($userbank->is_admin()) {
     $xajax->registerFunction("PrepareReblock");
     $xajax->registerFunction("PrepareBlockFromBan");
     $xajax->registerFunction("PasteBlock");
+    $xajax->registerFunction("AddTeamban");
 
     $xajax->registerFunction("generatePassword");
 }
@@ -2021,6 +2022,109 @@ function AddBan($nickname, $type, $steam, $ip, $length, $dfile, $dname, $reason,
     $objResponse->addScript("TabToReload();");
     $type = ($type == 0) ? $steam : $ip;
     Log::add("m", "Ban Added", "Ban against ($type) has been added. Reason: $reason; Length: $length");
+    return $objResponse;
+}
+
+/**
+ * @param string $nickname
+ * @param string $steam
+ * @param int $length
+ * @param string $reason
+ * @param $fromsub
+ * @return xajaxResponse
+ */
+function AddTeamban($nickname, $steam, $length, $reason)
+{
+    $objResponse = new xajaxResponse();
+    global $userbank, $username;
+
+    if (!$userbank->HasAccess(ADMIN_OWNER|ADMIN_ADD_BAN)) {
+        $objResponse->redirect("index.php?p=login&m=no_access", 0);
+        Log::add("w", "Hacking Attempt", "$username tried to add a ban, but doesnt have access.");
+        return $objResponse;
+    }
+
+    $steam = SteamID::toSteam2(trim($steam));
+    $nickname = htmlspecialchars_decode($nickname, ENT_QUOTES);
+    $reason = htmlspecialchars_decode($reason, ENT_QUOTES);
+
+    $error = 0;
+    // If they didnt type a steamid
+    if (empty($steam)) {
+        $error++;
+        $objResponse->addAssign("steam.msg", "innerHTML", "You must type a Steam ID or Community ID");
+        $objResponse->addScript("$('steam.msg').setStyle('display', 'block');");
+    } elseif (!SteamID::isValidID($steam)) {
+        $error++;
+        $objResponse->addAssign("steam.msg", "innerHTML", "Please enter a valid Steam ID or Community ID");
+        $objResponse->addScript("$('steam.msg').setStyle('display', 'block');");
+    } elseif ($length < 0) {
+        $error++;
+        $objResponse->addAssign("length.msg", "innerHTML", "Length must be positive or 0");
+        $objResponse->addScript("$('length.msg').setStyle('display', 'block');");
+    } else {
+        $objResponse->addAssign("steam.msg", "innerHTML", "");
+        $objResponse->addScript("$('steam.msg').setStyle('display', 'none');");
+    }
+
+    if ($error > 0) {
+        return $objResponse;
+    }
+
+    $length = $length * 60;
+
+    // Check if the new steamid is already banned
+    $chk = $GLOBALS['db']->GetRow("SELECT count(id) AS count FROM ". TEAMBANS_DB_NAME . " WHERE offender_id = ?
+        AND (length = 0 OR timeleft > 0)",
+        array(preg_replace('/\[U:1[^.]/', '', substr(SteamID::toSteam3($steam), 0, -1)))
+    );
+
+    if (intval($chk[0]) > 0) {
+        $objResponse->addScript("ShowBox('Error', 'SteamID: $steam is already banned.', 'red', '');");
+        return $objResponse;
+    }
+
+    // Check if player is immune
+    $admchk = $userbank->GetAllAdmins();
+    foreach ($admchk as $admin) {
+        if ($admin['authid'] == $steam && $userbank->GetProperty('srv_immunity') < $admin['srv_immunity']) {
+            $objResponse->addScript(
+                "ShowBox('Error', 'SteamID: Admin ". $admin['user'] . " ($steam) is immune.', 'red', '');"
+            );
+            return $objResponse;
+        }
+    }
+
+    $pre = $GLOBALS['db']->Prepare(
+        "INSERT INTO " . TEAMBANS_DB_NAME . " (timestamp,offender_id,offender_name,admin_id,admin_name,admin_id_sb_compatible,length,timeleft,reason) VALUES
+    (?,?,?,?,?,?,?,?,?)"
+    );
+    $GLOBALS['db']->Execute(
+        $pre, array(
+        date('Y-m-d H:i:s'),
+        preg_replace('/\[U:1[^.]/', '', substr(SteamID::toSteam3($steam), 0, -1)),
+        $nickname,
+        preg_replace('/\[U:1[^.]/', '', substr(SteamID::toSteam3($admin['authid']), 0, -1)),
+        $admin['user'],
+        $admin['authid'],
+        $length,
+        $length,
+        $reason)
+    );
+
+    $subid = $GLOBALS['db']->Insert_ID();
+
+    $kickit = Config::getBool('config.enablekickit');
+    if ($kickit) {
+        $objResponse->addScript("ShowKickBox('".($steam)."');");
+    } else {
+        $objResponse->addScript(
+            "ShowBox('Ban Added', 'The ban has been successfully added', 'green', 'index.php?p=admin&c=bans');"
+        );
+    }
+
+    $objResponse->addScript("TabToReload();");
+    Log::add("m", "Ban Added", "Ban against ($steam) has been added. Reason: $reason; Length: $length");
     return $objResponse;
 }
 

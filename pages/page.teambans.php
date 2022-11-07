@@ -29,8 +29,6 @@ if (!isset($_SESSION['banlist_postkey']) || strlen($_SESSION['banlist_postkey'])
     setPostKey();
 }
 
-// PruneBans();
-
 if (isset($_GET['page']) && $_GET['page'] > 0) {
     $page     = intval($_GET['page']);
     $pagelink = "&page=" . $page;
@@ -119,7 +117,7 @@ if (isset($_SESSION["hideinactive"])) {
 }
 
 if (!isset($_GET['search'])) {
-    $res = $GLOBALS['db']->Execute("SELECT * FROM " . TEAMBANS_DB_NAME . $hideinactiven . " LIMIT " . $BansPerPage);
+    $res = $GLOBALS['db']->Execute("SELECT * FROM " . TEAMBANS_DB_NAME . $hideinactiven . ' ORDER BY timestamp DESC ' . " LIMIT " . $BansPerPage);
 
     $res_count  = $GLOBALS['db']->Execute("SELECT count(id) FROM " . TEAMBANS_DB_NAME . $hideinactiven);
     $searchlink = "";

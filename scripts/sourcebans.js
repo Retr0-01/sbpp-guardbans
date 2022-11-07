@@ -1434,6 +1434,28 @@ function selectLengthTypeReason(length, type, reason)
 	}
 }
 
+function selectLengthReasonOnly(length, reason)
+{
+	for(var i=0; i<=$('banlength').length ; i++) {
+		if($('banlength').options[i].value == (length / 60)) {
+			$('banlength').options[i].selected=true;
+			break;
+		}
+	}
+	for(var i=0;i<=$('listReason').length;i++)	{
+		if($('listReason').options[i].innerHTML == reason) {
+			$('listReason').options[i].selected=true;
+			break;
+		}
+		if($('listReason').options[i].value == 'other') {
+			$('txtReason').value = reason;
+			$('dreason').style.display = 'block';
+			$('listReason').options[i].selected=true;
+			break;
+		}
+	}
+}
+
 function ViewCommunityProfile(sid, name)
 {
     ShowBox('View Community Profile', 'Generating Community Profile link for "'+name+'", please wait...', 'blue', '', true);
