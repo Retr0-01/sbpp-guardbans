@@ -262,6 +262,9 @@
           	<!-- ###############[ End Sliding Panel ]################## -->
 		{/foreach}
 	</table>
+  <div id="banlist-nav">
+    {$ban_nav}
+  </div>
 </div>
 {literal}
 <script type="text/javascript">window.addEvent('domready', function(){
