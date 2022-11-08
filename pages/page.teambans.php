@@ -43,15 +43,15 @@ if (isset($_GET['a']) && $_GET['a'] == "unban" && isset($_GET['id']))
         die("Possible hacking attempt (URL Key mismatch)");
     }
     
-    if (!$userbank->HasAccess(ADMIN_OWNER | ADMIN_UNBAN)) {
-        echo "<script>ShowBox('Error', 'You do not have access to this.', 'red', 'index.php?p=teambans$pagelink');</script>";
-        PageDie();
-    }
-
-    $row = $GLOBALS['db']->GetRow("SELECT offender_name, offender_id FROM " . TEAMBANS_DB_NAME . " WHERE id = ? AND timeleft > 0", $_GET['id']);
+    $row = $GLOBALS['db']->GetRow("SELECT offender_name, offender_id, admin_id_sb_compatible FROM " . TEAMBANS_DB_NAME . " WHERE id = ? AND timeleft > 0", $_GET['id']);
 
     if (empty($row) || !$row) {
         echo "<script>ShowBox('Player Not Unguardbanned', 'The player's teamban was not removed, either they are already unbanned or this is not a valid teamban.', 'red', 'index.php?p=teambans$pagelink');</script>";
+        PageDie();
+    }
+
+    if (!$userbank->HasAccess(ADMIN_OWNER | ADMIN_UNBAN) && !($userbank->HasAccess(ADMIN_UNBAN_OWN_BANS) && $row['admin_id_sb_compatible'] == $userbank->GetUserArray()['authid'])) {
+        echo "<script>ShowBox('Error', 'You do not have access to this.', 'red', 'index.php?p=teambans$pagelink');</script>";
         PageDie();
     }
 
@@ -226,12 +226,10 @@ while (!$res->EOF) {
     $data['ban_timeleft'] = $res->fields['timeleft'] == 0 ? '' : SecondsToString(intval($res->fields['timeleft'])) . " /";
 
     if ($res->fields['length'] == 0) {
-        $data['expires']   = 'never';
         $data['class']     = "listtable_1_permanent";
         $data['ub_reason'] = "";
     }
     else {
-        $data['expires'] = date(Config::get('config.dateformat'), strtotime($data['ban_date'] . '+' . $res->fields['length'] .' seconds'));
         $data['class']     = "listtable_1_banned";
         $data['ub_reason'] = "";
     }
@@ -250,7 +248,7 @@ while (!$res->EOF) {
     // Show any previous teambans.
     $teamban_history = $GLOBALS['db']->GetAll("SELECT id FROM " . TEAMBANS_DB_NAME . " WHERE offender_id = (?)", $res->fields['offender_id']);
     if (sizeof($teamban_history) > 1) {
-        $data['prevoff_link'] = sizeof($teamban_history) . " " . CreateLinkR("(search)", "index.php?p=teambans&search=" . $data['steamid'] . "&Submit");
+        $data['prevoff_link'] = sizeof($teamban_history) . " " . CreateLinkR("(search)", "index.php?p=teambans&search=" . $data['steamid'] . "&searchType=steamid&Submit");
     } else {
         $data['prevoff_link'] = "No previous bans";
     }
@@ -314,8 +312,8 @@ while (!$res->EOF) {
     $data['addcomment'] = CreateLinkR('<i class="fas fa-comment-dots fa-lg"></i> Add Comment', 'index.php?p=teambans&comment=' . $data['ban_id'] . '&ctype=T' . $pagelink);
     //-----------------------------------
     $data['banlength']   = $data['ban_length'] . " " . $data['ub_reason'];
-    $data['view_edit']   = ($userbank->HasAccess(ADMIN_OWNER | ADMIN_EDIT_ALL_BANS) || ($userbank->HasAccess(ADMIN_EDIT_OWN_BANS) && $res->fields['aid'] == $userbank->GetAid()) || ($userbank->HasAccess(ADMIN_EDIT_GROUP_BANS) && $res->fields['gid'] == $userbank->GetProperty('gid')));
-    $data['view_unban']  = ($userbank->HasAccess(ADMIN_OWNER | ADMIN_UNBAN) || ($userbank->HasAccess(ADMIN_UNBAN_OWN_BANS) && $res->fields['aid'] == $userbank->GetAid()) || ($userbank->HasAccess(ADMIN_UNBAN_GROUP_BANS) && $res->fields['gid'] == $userbank->GetProperty('gid')));
+    $data['view_edit']   = ($userbank->HasAccess(ADMIN_OWNER | ADMIN_EDIT_ALL_BANS) || ($userbank->HasAccess(ADMIN_EDIT_OWN_BANS) && $res->fields['admin_id_sb_compatible'] == $userbank->GetUserArray()['authid']));
+    $data['view_unban']  = ($userbank->HasAccess(ADMIN_OWNER | ADMIN_UNBAN) || ($userbank->HasAccess(ADMIN_UNBAN_OWN_BANS) && $res->fields['admin_id_sb_compatible'] == $userbank->GetUserArray()['authid']));
     $data['view_delete'] = ($userbank->HasAccess(ADMIN_OWNER | ADMIN_DELETE_BAN));
     array_push($bans, $data);
     $res->MoveNext();

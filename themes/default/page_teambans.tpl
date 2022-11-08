@@ -170,18 +170,9 @@
 								<td height="16" class="listtable_1">{$ban.ban_date}</td>
 					        </tr>
 					        <tr align="left">
-					            <td width="20%" height="16" class="listtable_1">Banlength</td>
+					            <td width="20%" height="16" class="listtable_1">Teamban Length</td>
 					            <td height="16" class="listtable_1">{$ban.banlength}</td>
 					        </tr>
-					        <tr align="left">
-					            <td width="20%" height="16" class="listtable_1">Expires on</td>
-					            <td height="16" class="listtable_1">
-					            	{if $ban.expires == "never"}
-		     							<i><font color="#677882">Not applicable.</font></i>
-		     						{else}
-		     							{$ban.expires}
-		     						{/if}
-		     					</td>
 							</tr>
 							<tr align="left">
 								<td width="20%" height="16" class="listtable_1">Reason</td>
