@@ -2104,9 +2104,9 @@ function AddTeamban($nickname, $steam, $length, $reason)
         date('Y-m-d H:i:s'),
         preg_replace('/\[U:1[^.]/', '', substr(SteamID::toSteam3($steam), 0, -1)),
         $nickname,
-        preg_replace('/\[U:1[^.]/', '', substr(SteamID::toSteam3($admin['authid']), 0, -1)),
-        $admin['user'],
-        $admin['authid'],
+        preg_replace('/\[U:1[^.]/', '', substr(SteamID::toSteam3($userbank->GetUserArray()['authid']), 0, -1)),
+        $userbank->GetUserArray()['user'],
+        $userbank->GetUserArray()['authid'],
         $length,
         $length,
         $reason)
