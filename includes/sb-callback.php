@@ -2113,8 +2113,9 @@ function AddTeamban($nickname, $steam, $length, $reason)
     );
 
     $kickit = Config::getBool('config.enablekickit');
+    $type = 2;
     if ($kickit) {
-        $objResponse->addScript("ShowKickBox('".($steam)."');");
+        $objResponse->addScript("ShowKickBox('".$steam."', '".(int)$type."');");
     } else {
         $objResponse->addScript(
             "ShowBox('Ban Added', 'The ban has been successfully added', 'green', 'index.php?p=admin&c=bans');"

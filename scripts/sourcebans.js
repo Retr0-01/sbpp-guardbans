@@ -1223,6 +1223,8 @@ function changePage(newPage, type, advSearch, advType)
             window.location = "index.php?p=banlist"+searchlink+"&page="+nextPage;
 		if(type == "C")
             window.location = "index.php?p=commslist"+searchlink+"&page="+nextPage;
+		if(type == "T")
+            window.location = "index.php?p=teambans"+searchlink+"&page="+nextPage;
 		if(type == "L")
             window.location = "index.php?p=admin&c=settings"+searchlink+"&page="+nextPage+"#^2";
         if(type == "P")

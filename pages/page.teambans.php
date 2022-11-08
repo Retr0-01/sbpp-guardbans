@@ -361,7 +361,7 @@ if (strlen($next) > 0) {
 }
 $pages = ceil($BanCount / $BansPerPage);
 if ($pages > 1) {
-    $ban_nav .= '&nbsp;<select onchange="changePage(this,\'B\',\'' . (isset($_GET['search']) ? $_GET['search'] : '') . '\',\'' . (isset($_GET['searchType']) ? $_GET['searchType'] : '') . '\');">';
+    $ban_nav .= '&nbsp;<select onchange="changePage(this,\'T\',\'' . (isset($_GET['search']) ? $_GET['search'] : '') . '\',\'' . (isset($_GET['searchType']) ? $_GET['searchType'] : '') . '\');">';
     for ($i = 1; $i <= $pages; $i++) {
         if (isset($_GET["page"]) && $i == $page) {
             $ban_nav .= '<option value="' . $i . '" selected="selected">' . $i . '</option>';
