@@ -219,7 +219,9 @@ while (!$res->EOF) {
     if (Config::getBool('banlist.hideadminname') && !$userbank->is_admin()) {
         $data['admin'] = false;
     } else {
-        $data['admin'] = stripslashes($res->fields['admin_name']);
+        $adminres = $GLOBALS['db']->GetRow("SELECT user FROM `" . DB_PREFIX . "_admins` WHERE authid = ?", $res->fields['admin_id_sb_compatible']);
+
+        $data['admin'] = stripslashes($adminres['user']);
     }
 
     $data['ban_length'] = $res->fields['length'] == 0 ? 'Permanent' : SecondsToString(intval($res->fields['length']));
