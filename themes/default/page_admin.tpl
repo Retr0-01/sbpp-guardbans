@@ -41,6 +41,15 @@
                 </a>
             </li>
         {/if}
+        {if $access_bans}
+            <li>
+                <a href="index.php?p=admin&amp;c=teambans">
+                    <i class="fas fa-user-slash fa-5x"></i>
+                    <br/><br/>
+                    <b>Teambans</b>
+                </a>
+            </li>
+        {/if}
         {if $access_groups}
             <li>
                 <a href="index.php?p=admin&amp;c=groups">

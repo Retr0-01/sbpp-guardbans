@@ -694,7 +694,7 @@ a.nav_link:hover {
 
 /* CPanel */
 #cpanel {
-    width: 100%;
+    width: 110%;
     height: 120px;
     background-color: #e0e0e0;
 }
@@ -715,7 +715,7 @@ a.nav_link:hover {
     display: block;
     height: 97px !important;
     height: 100px;
-    width: 108px !important;
+    width: 100px !important;
     width: 110px;
     vertical-align: middle;
     text-decoration: none;

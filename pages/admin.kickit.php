@@ -116,6 +116,16 @@ function KickPlayer($check, int $sid, $num, $type)
                 $objResponse->addScript("set_counter('-1');");
                 return $objResponse;
             }
+        } else if ($type == 2) {
+            // $type = 2 is used for teambans to change the kick message sent.
+            if (\SteamID\SteamID::compare($player['steamid'], $check)) {
+                $domain = Host::complete();
+                rcon("kickid $player[id] \"Applying guardban\"", $sid);
+
+                $objResponse->addAssign("srv_$num", "innerHTML", "<font color='green' size='1'><b><u>Player Found & Kicked!</u></b></font>");
+                $objResponse->addScript("set_counter('-1');");
+                return $objResponse;
+            }
         }
     }
 

@@ -27,6 +27,12 @@ $navbar = [
         'permission' => Config::getBool('config.enablecomms')
     ],
     [
+        'title' => 'Teambans',
+        'endpoint' => 'teambans',
+        'description' => 'All jailbreak guardbans can be viewed from here.',
+        'permission' => true
+    ],
+    [
         'title' => 'Report a Player',
         'endpoint' => 'submit',
         'description' => 'You can submit a demo or screenshot of a suspected cheater here. It will then be up for review by one of the admins.',
@@ -66,6 +72,11 @@ $admin = [
         'title' => 'Comms',
         'endpoint' => 'comms',
         'permission' => ADMIN_OWNER|ADMIN_ADD_BAN|ADMIN_EDIT_OWN_BANS|ADMIN_EDIT_ALL_BANS
+    ],
+    [
+        'title' => 'Teambans',
+        'endpoint' => 'teambans',
+        'permission' => ADMIN_OWNER|ADMIN_ADD_BAN|ADMIN_EDIT_OWN_BANS|ADMIN_EDIT_GROUP_BANS|ADMIN_EDIT_ALL_BANS|ADMIN_BAN_PROTESTS|ADMIN_BAN_SUBMISSIONS
     ],
     [
         'title' => 'Groups',
