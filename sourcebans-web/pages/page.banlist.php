@@ -2,7 +2,7 @@
 /*************************************************************************
 This file is part of SourceBans++
 
-SourceBans++ (c) 2014-2019 by SourceBans++ Dev Team
+SourceBans++ (c) 2014-2023 by SourceBans++ Dev Team
 
 The SourceBans++ Web panel is licensed under a
 Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -23,7 +23,7 @@ if (!defined("IN_SB")) {
     die();
 }
 $BansPerPage = SB_BANS_PER_PAGE;
-$servers     = array();
+$servers     = [];
 global $userbank;
 function setPostKey()
 {
@@ -224,7 +224,7 @@ if (isset($_GET['searchText'])) {
 
     // disable ip search if hiding player ips
     $search_ips   = "";
-    $search_array = array();
+    $search_array = [];
     if (!Config::getBool('banlist.hideplayerips') || $userbank->is_admin()) {
         $search_ips     = "BA.ip LIKE ? OR ";
         $search_array[] = $search;
@@ -277,7 +277,7 @@ if (isset($_GET['searchText'])) {
     $searchlink = "";
 }
 
-$advcrit = array();
+$advcrit = [];
 if (isset($_GET['advSearch'])) {
     $value = trim($_GET['advSearch']);
     $type  = $_GET['advType'];
@@ -310,7 +310,7 @@ if (isset($_GET['advSearch'])) {
             // disable ip search if hiding player ips
             if (Config::getBool('banlist.hideplayerips') && !$userbank->is_admin()) {
                 $where   = "";
-                $advcrit = array();
+                $advcrit = [];
             } else {
                 $where   = "WHERE BA.ip LIKE ?";
                 $advcrit = array(
@@ -326,8 +326,8 @@ if (isset($_GET['advSearch'])) {
             break;
         case "date":
             $date    = explode(",", $value);
-            $time    = mktime(0, 0, 0, $date[1], $date[0], $date[2]);
-            $time2   = mktime(23, 59, 59, $date[1], $date[0], $date[2]);
+            $time    = mktime(0, 0, 0, (int)$date[1], (int)$date[0], (int)$date[2]);
+            $time2   = mktime(23, 59, 59, (int)$date[1], (int)$date[0], (int)$date[2]);
             $where   = "WHERE BA.created > ? AND BA.created < ?";
             $advcrit = array(
                 $time,
@@ -337,7 +337,7 @@ if (isset($_GET['advSearch'])) {
         case "length":
             $len         = explode(",", $value);
             $length_type = $len[0];
-            $length      = $len[1] * 60;
+            $length      = (int)$len[1] * 60;
             $where       = "WHERE BA.length ";
             switch ($length_type) {
                 case "e":
@@ -370,7 +370,7 @@ if (isset($_GET['advSearch'])) {
         case "admin":
             if (Config::getBool('banlist.hideadminname') && !$userbank->is_admin()) {
                 $where   = "";
-                $advcrit = array();
+                $advcrit = [];
             } else {
                 $where   = "WHERE BA.aid=?";
                 $advcrit = array(
@@ -404,14 +404,14 @@ if (isset($_GET['advSearch'])) {
                 );
             } else {
                 $where   = "";
-                $advcrit = array();
+                $advcrit = [];
             }
             break;
         default:
             $where             = "";
             $_GET['advType']   = "";
             $_GET['advSearch'] = "";
-            $advcrit           = array();
+            $advcrit           = [];
             break;
     }
 
@@ -451,10 +451,11 @@ if (!$res) {
     PageDie();
 }
 
+$canEditComment = false;
 $view_comments = false;
-$bans          = array();
+$bans          = [];
 while (!$res->EOF) {
-    $data = array();
+    $data = [];
 
     $data['ban_id'] = $res->fields['ban_id'];
 
@@ -469,7 +470,8 @@ while (!$res->EOF) {
                 $res->fields['ban_id']
             ));
 
-            $data['country'] = '<img src="images/country/' . strtolower($country) . '.jpg" alt="' . $country . '" border="0" align="absmiddle" />';
+            $countryFlag = empty($country) ? 'zz' : strtolower($country);
+            $data['country'] = '<img src="images/country/' . $countryFlag . '.jpg" alt="' . $country . '" border="0" align="absmiddle" />';
         } else {
             $data['country'] = '<img src="images/country/zz.jpg" alt="Unknown Country" border="0" align="absmiddle" />';
         }
@@ -519,7 +521,7 @@ while (!$res->EOF) {
             $data['ub_reason'] = "(Expired)";
         }
 
-        $data['ureason'] = stripslashes($res->fields['unban_reason']);
+        $data['ureason'] = stripslashes($res->fields['unban_reason'] ?? '');
 
         $removedby         = $GLOBALS['db']->GetRow("SELECT user FROM `" . DB_PREFIX . "_admins` WHERE aid = '" . $res->fields['RemovedBy'] . "'");
         $data['removedby'] = "";
@@ -615,7 +617,7 @@ while (!$res->EOF) {
 
     //COMMENT STUFF
     //-----------------------------------
-    if ((Config::getBool('config.enablepubliccomments') || $userbank->is_admin())) {
+    if (Config::getBool('config.enablepubliccomments') || $userbank->is_admin()) {
         $view_comments = true;
         $commentres    = $GLOBALS['db']->Execute("SELECT cid, aid, commenttxt, added, edittime,
 											(SELECT user FROM `" . DB_PREFIX . "_admins` WHERE aid = C.aid) AS comname,
@@ -624,10 +626,10 @@ while (!$res->EOF) {
 											WHERE type = 'B' AND bid = '" . $data['ban_id'] . "' ORDER BY added desc");
 
         if ($commentres->RecordCount() > 0) {
-            $comment = array();
+            $comment = [];
             $morecom = 0;
             while (!$commentres->EOF) {
-                $cdata            = array();
+                $cdata            = [];
                 $cdata['morecom'] = ($morecom == 1 ? true : false);
                 if ($commentres->fields['aid'] == $userbank->GetAid() || $userbank->HasAccess(ADMIN_OWNER)) {
                     $cdata['editcomlink'] = CreateLinkR('<i class="fas fa-edit fa-lg"></i>', 'index.php?p=banlist&comment=' . $data['ban_id'] . '&ctype=B&cid=' . $commentres->fields['cid'] . $pagelink, 'Edit Comment');
@@ -754,9 +756,9 @@ if (isset($_GET["comment"])) {
         $_GET["comment"]
     ));
 
-    $ocomments = array();
+    $ocomments = [];
     while (!$cotherdata->EOF) {
-        $coment               = array();
+        $coment               = [];
         $coment['comname']    = $cotherdata->fields['comname'];
         $coment['added']      = Config::time($cotherdata->fields['added']);
         $coment['commenttxt'] = htmlspecialchars($cotherdata->fields['commenttxt']);
@@ -779,9 +781,11 @@ if (isset($_GET["comment"])) {
     $theme->assign('commenttext', (isset($ctext) ? $ctext : ""));
     $theme->assign('ctype', $_GET["ctype"]);
     $theme->assign('cid', (isset($_GET["cid"]) ? $_GET["cid"] : ""));
+    $theme->assign('canedit', $userbank->is_admin());
 }
 $theme->assign('view_comments', $view_comments);
 $theme->assign('comment', (isset($_GET["comment"]) && $view_comments ? $_GET["comment"] : false));
+$theme->assign('canEditComment', $canEditComment);
 //----------------------------------------
 
 unset($_SESSION['CountryFetchHndl']);

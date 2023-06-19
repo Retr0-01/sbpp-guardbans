@@ -9,6 +9,8 @@ define('DB_PORT', '{port}');							// The SQL port (Default: 3306)
 define('DB_CHARSET', '{charset}');                    // The Database charset (Default: utf8)
 define('STEAMAPIKEY', '{steamapikey}');				// Steam API Key for Shizz
 define('SB_EMAIL', '{sbwpemail}');
+define('SB_NEW_SALT', '{sbsalt}'); //Salt for passwords
+define('SB_SECRET_KEY', '{sbsecretkey}'); //Secret for JWT
 ";
 
 $srv_cfg = '"driver_default"		"mysql"
@@ -34,6 +36,8 @@ $web_cfg = str_replace("{port}", $_POST['port'], $web_cfg);
 $web_cfg = str_replace("{charset}", $_POST['charset'], $web_cfg);
 $web_cfg = str_replace("{steamapikey}", $_POST['apikey'], $web_cfg);
 $web_cfg = str_replace("{sbwpemail}", $_POST['sb-email'], $web_cfg);
+$web_cfg = str_replace("{sbsalt}", '$5$', $web_cfg); // @todo generate a salt.
+$web_cfg = str_replace("{sbsecretkey}", base64_encode(openssl_random_pseudo_bytes(47)), $web_cfg);
 
 $srv_cfg = str_replace("{server}", $_POST['server'], $srv_cfg);
 $srv_cfg = str_replace("{user}", $_POST['username'], $srv_cfg);
@@ -145,31 +149,31 @@ if (isset($_POST['postd']) && $_POST['postd']) {
 <div align="center">
 <table width="60%" style="border-collapse:collapse;" id="group.details" cellpadding="3">
   <tr>
-    <td valign="top" width="35%"><div class="rowdesc"><?php echo HelpIcon("Main Admin", "Type the username for the main SourceBans admin");?>Admin Username</div></td>
+    <td valign="top" width="35%"><div class="rowdesc"><?php echo HelpIcon("Main Admin", "Type the username for the main SourceBans admin");?>&nbsp;&nbsp;Admin Username</div></td>
     <td><div align="center">
   	 <input type="text" TABINDEX=1 class="textbox" id="uname" name="uname" value="" />
     </div><div id="server.msg" style="color:#CC0000;"></div></td>
   </tr>
   <tr>
-    <td valign="top" width="35%"><div class="rowdesc"><?php echo HelpIcon("Password", "Type a password for the main admin");?>Admin Password</div></td>
+    <td valign="top" width="35%"><div class="rowdesc"><?php echo HelpIcon("Password", "Type a password for the main admin");?>&nbsp;&nbsp;Admin Password</div></td>
     <td><div align="center">
   	 <input type="password" TABINDEX=1 class="textbox" id="pass1" name="pass1" value="" />
     </div><div id="port.msg" style="color:#CC0000;"></div></td>
   </tr>
   <tr>
-    <td valign="top" width="35%"><div class="rowdesc"><?php echo HelpIcon("Confirm", "Type the password again");?>Confirm Password</div></td>
+    <td valign="top" width="35%"><div class="rowdesc"><?php echo HelpIcon("Confirm", "Type the password again");?>&nbsp;&nbsp;Confirm Password</div></td>
     <td><div align="center">
   	 <input type="password" TABINDEX=1 class="textbox" id="pass2" name="pass2" value="" />
     </div><div id="user.msg" style="color:#CC0000;"></div></td>
   </tr>
   <tr>
-    <td valign="top" width="35%"><div class="rowdesc"><?php echo HelpIcon("STEAM", "Type your STEAM id");?>Steam ID</div></td>
+    <td valign="top" width="35%"><div class="rowdesc"><?php echo HelpIcon("STEAM", "Type your STEAM id");?>&nbsp;&nbsp;Steam ID</div></td>
     <td><div align="center">
   	 <input type="text" TABINDEX=1 class="textbox" id="steam" name="steam" value="" />
     </div><div id="user.msg" style="color:#CC0000;"></div></td>
   </tr>
   <tr>
-    <td valign="top" width="35%"><div class="rowdesc"><?php echo HelpIcon("Email", "Type your email");?>Email</div></td>
+    <td valign="top" width="35%"><div class="rowdesc"><?php echo HelpIcon("Email", "Type your email");?>&nbsp;&nbsp;Email</div></td>
     <td><div align="center">
   	 <input type="text" TABINDEX=1 class="textbox" id="email" name="email" value="" />
     </div><div id="user.msg" style="color:#CC0000;"></div></td>

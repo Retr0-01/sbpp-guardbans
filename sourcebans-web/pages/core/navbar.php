@@ -27,12 +27,6 @@ $navbar = [
         'permission' => Config::getBool('config.enablecomms')
     ],
     [
-        'title' => 'Teambans',
-        'endpoint' => 'teambans',
-        'description' => 'All jailbreak guardbans can be viewed from here.',
-        'permission' => true
-    ],
-    [
         'title' => 'Report a Player',
         'endpoint' => 'submit',
         'description' => 'You can submit a demo or screenshot of a suspected cheater here. It will then be up for review by one of the admins.',
@@ -74,11 +68,6 @@ $admin = [
         'permission' => ADMIN_OWNER|ADMIN_ADD_BAN|ADMIN_EDIT_OWN_BANS|ADMIN_EDIT_ALL_BANS
     ],
     [
-        'title' => 'Teambans',
-        'endpoint' => 'teambans',
-        'permission' => ADMIN_OWNER|ADMIN_ADD_BAN|ADMIN_EDIT_OWN_BANS|ADMIN_EDIT_GROUP_BANS|ADMIN_EDIT_ALL_BANS|ADMIN_BAN_PROTESTS|ADMIN_BAN_SUBMISSIONS
-    ],
-    [
         'title' => 'Groups',
         'endpoint' => 'groups',
         'permission' => ADMIN_OWNER|ADMIN_LIST_GROUPS|ADMIN_ADD_GROUP|ADMIN_EDIT_GROUPS|ADMIN_DELETE_GROUPS
@@ -95,7 +84,7 @@ $admin = [
     ]
 ];
 
-$active = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_STRING);
+$active = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_SPECIAL_CHARS);
 foreach ($navbar as $key => $tab) {
     $navbar[$key]['state'] = ($active === $tab['endpoint']) ? 'active' : 'nonactive';
 
@@ -105,7 +94,7 @@ foreach ($navbar as $key => $tab) {
 }
 
 if ($userbank->is_admin()) {
-    $cat = filter_input(INPUT_GET, 'c', FILTER_SANITIZE_STRING);
+    $cat = filter_input(INPUT_GET, 'c', FILTER_SANITIZE_SPECIAL_CHARS);
     foreach ($admin as $key => $tab) {
         $admin[$key]['state'] = ($cat === $tab['endpoint']) ? 'active' : '';
 

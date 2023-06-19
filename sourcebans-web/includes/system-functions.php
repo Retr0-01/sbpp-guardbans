@@ -2,7 +2,7 @@
 /*************************************************************************
 This file is part of SourceBans++
 
-SourceBans++ (c) 2014-2019 by SourceBans++ Dev Team
+SourceBans++ (c) 2014-2023 by SourceBans++ Dev Team
 
 The SourceBans++ Web panel is licensed under a
 Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -296,9 +296,9 @@ function sizeFormat($bytes)
  *
  * @param  int   $sid
  * @param  array $steamids
- * @return array array('STEAM_ID_1' => array('name' => $name, 'steam' => $steam, 'ip' => $ip, 'time' => $time, 'ping' => $ping), 'STEAM_ID_2' => array()....)
+ * @return array array('STEAM_ID_1' => array('name' => $name, 'steam' => $steam, 'ip' => $ip, 'time' => $time, 'ping' => $ping), 'STEAM_ID_2' => []....)
  */
-function checkMultiplePlayers(int $sid, $steamids)
+function checkMultiplePlayers(int $sid, array $steamids)
 {
     $ret = rcon('status', $sid);
 
@@ -355,6 +355,7 @@ function rcon(string $cmd, int $sid)
         $rcon->setRconPassword($server['rcon']);
 
         $output = $rcon->Rcon($cmd);
+        Log::add("m", "RCON Sent", sprintf("RCON Command (%s) was sent to server (%s:%d)", $cmd, $server['ip'], $server['port']));
     } catch (\xPaw\SourceQuery\Exception\AuthenticationException $e) {
         $GLOBALS['PDO']->query("UPDATE `:prefix_servers` SET rcon = '' WHERE sid = :sid");
         $GLOBALS['PDO']->bind(':sid', $sid);
@@ -402,5 +403,5 @@ function parseRconStatus(string $status)
  */
 function compareSanitizedString(string $str1, string $str2)
 {
-    return (bool)(strcmp(filter_var($str1, FILTER_SANITIZE_STRING), filter_var($str2, FILTER_SANITIZE_STRING)) === 0);
+    return (bool)(strcmp(filter_var($str1, FILTER_SANITIZE_SPECIAL_CHARS), filter_var($str2, FILTER_SANITIZE_SPECIAL_CHARS)) === 0);
 }

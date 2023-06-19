@@ -2,7 +2,7 @@
 /*************************************************************************
 This file is part of SourceBans++
 
-SourceBans++ (c) 2014-2019 by SourceBans++ Dev Team
+SourceBans++ (c) 2014-2023 by SourceBans++ Dev Team
 
 The SourceBans++ Web panel is licensed under a
 Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -67,7 +67,7 @@ if (isset($_POST['adminname'])) {
     $a_name           = trim($_POST['adminname']);
     $a_steam          = \SteamID\SteamID::toSteam2(trim($_POST['steam']));
     $a_email          = trim($_POST['email']);
-    $a_serverpass     = $_POST['a_useserverpass'] == "on";
+    $a_serverpass     = isset($_POST['a_useserverpass']) && $_POST['a_useserverpass'] == "on";
     $pw_changed       = false;
     $serverpw_changed = false;
 
@@ -172,7 +172,7 @@ if (isset($_POST['adminname'])) {
         }
 
         // Check for the serverpassword
-        if ($_POST['a_useserverpass'] == "on") {
+        if (isset($_POST['a_useserverpass']) && $_POST['a_useserverpass'] == "on") {
             if (!empty($_POST['a_serverpass'])) {
                 $serverpw_changed = true;
             }
@@ -231,7 +231,7 @@ if (isset($_POST['adminname'])) {
                     $_GET['id']
                 )
             );
-        } elseif ($_POST['a_useserverpass'] != "on") {
+        } elseif (isset($_POST['a_useserverpass']) && $_POST['a_useserverpass'] != "on") {
             // Remove the server password
             $edit = $GLOBALS['db']->Execute(
                 "UPDATE " . DB_PREFIX . "_admins SET
@@ -257,7 +257,7 @@ if (isset($_POST['adminname'])) {
                 WHERE ((asg.server_id != '-1' AND asg.srv_group_id = '-1')
                 OR (asg.srv_group_id != '-1' AND asg.server_id = '-1'))
                 AND (s.sid IN(asg.server_id) OR s.sid IN(sg.server_id)) AND s.enabled = 1");
-            $allservers    = array();
+            $allservers    = [];
             foreach ($serveraccessq as $access) {
                 if (!in_array($access['sid'], $allservers)) {
                     $allservers[] = $access['sid'];
@@ -287,7 +287,7 @@ if (isset($_POST['adminname'])) {
     $a_serverpass = !empty($a_serverpass);
 }
 
-$theme->assign('change_pass', ($userbank->HasAccess(ADMIN_OWNER) || $_GET['id'] == $userbank->GetAid()));
+$theme->assign('change_pass', ($userbank->HasAccess(ADMIN_OWNER) || $userbank->HasAccess(ADMIN_EDIT_ADMINS)|| $_GET['id'] == $userbank->GetAid()));
 $theme->assign('user', $a_name);
 $theme->assign('authid', $a_steam);
 $theme->assign('email', $a_email);

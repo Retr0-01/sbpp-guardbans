@@ -2,7 +2,7 @@
 /*************************************************************************
 This file is part of SourceBans++
 
-SourceBans++ (c) 2014-2019 by SourceBans++ Dev Team
+SourceBans++ (c) 2014-2023 by SourceBans++ Dev Team
 
 The SourceBans++ Web panel is licensed under a
 Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -131,7 +131,7 @@ if (isset($_POST['wg']) || isset($_GET['wg']) || isset($_GET['sg'])) {
                 WHERE ((asg.server_id != '-1' AND asg.srv_group_id = '-1')
                 OR (asg.srv_group_id != '-1' AND asg.server_id = '-1'))
                 AND (s.sid IN(asg.server_id) OR s.sid IN(sg.server_id)) AND s.enabled = 1");
-            $allservers    = array();
+            $allservers    = [];
             foreach ($serveraccessq as $access) {
                 if (!in_array($access['sid'], $allservers)) {
                     $allservers[] = $access['sid'];

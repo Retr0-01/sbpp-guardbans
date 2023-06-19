@@ -2,7 +2,7 @@
 /*************************************************************************
 This file is part of SourceBans++
 
-SourceBans++ (c) 2014-2019 by SourceBans++ Dev Team
+SourceBans++ (c) 2014-2023 by SourceBans++ Dev Team
 
 The SourceBans++ Web panel is licensed under a
 Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -122,7 +122,7 @@ if (isset($_GET['advSearch'])) {
 $admins = $GLOBALS['db']->GetAll("SELECT * FROM `" . DB_PREFIX . "_admins` AS ADM".$join." WHERE ADM.aid > 0".$where." ORDER BY user LIMIT " . intval(($page-1) * $AdminsPerPage) . "," . intval($AdminsPerPage));
 // quick fix for the server search showing admins mulitple times.
 if (isset($_GET['advSearch']) && isset($_GET['advType']) && $_GET['advType'] == 'server') {
-    $aadm = array();
+    $aadm = [];
     $num = 0;
     foreach ($admins as $aadmin) {
         if (!in_array($aadmin['aid'], $aadm)) {
@@ -148,7 +148,7 @@ if ($AdminsEnd > $admin_count) {
 }
 
 // List Page
-$admin_list = array();
+$admin_list = [];
 foreach ($admins as $admin) {
     $admin['immunity']     = $userbank->GetProperty("srv_immunity", $admin['aid']);
     $admin['web_group']    = $userbank->GetProperty("group_name", $admin['aid']);
@@ -202,9 +202,9 @@ if (strlen($next) > 0) {
 
 $pages = ceil($admin_count / $AdminsPerPage);
 if ($pages > 1) {
-    $admin_nav .= '&nbsp;<select onchange="changePage(this,\'A\',\'' . $_GET['advSearch'] . '\',\'' . $_GET['advType'] . '\');">';
+    $admin_nav .= '&nbsp;<select onchange="changePage(this,\'A\',\'' . ($_GET['advSearch'] ?? '') . '\',\'' . ($_GET['advType'] ?? '') . '\');">';
     for ($i = 1; $i <= $pages; $i++) {
-        if ($i == $_GET["page"]) {
+        if (isset($_GET['page']) && $i === $_GET['page']) {
             $admin_nav .= '<option value="' . $i . '" selected="selected">' . $i . '</option>';
             continue;
         }
@@ -226,7 +226,7 @@ $group_list              = $GLOBALS['db']->GetAll("SELECT * FROM `" . DB_PREFIX 
 $servers                 = $GLOBALS['db']->GetAll("SELECT * FROM `" . DB_PREFIX . "_servers`");
 $server_admin_group_list = $GLOBALS['db']->GetAll("SELECT * FROM `" . DB_PREFIX . "_srvgroups`");
 $server_group_list       = $GLOBALS['db']->GetAll("SELECT * FROM `" . DB_PREFIX . "_groups` WHERE type != 3");
-$server_list             = array();
+$server_list             = [];
 $serverscript            = "<script type=\"text/javascript\">";
 foreach ($servers as $server) {
     $serverscript .= "xajax_ServerHostPlayers('" . $server['sid'] . "', 'id', 'sa" . $server['sid'] . "');";

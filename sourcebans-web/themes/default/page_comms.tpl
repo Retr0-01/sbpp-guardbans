@@ -6,7 +6,7 @@
         </tr>
         <tr>
             <td><div align="left">
-                    <textarea rows="10" cols="60" class="submit-fields" style="width:500px;" id="commenttext" name="commenttext">{$commenttext}</textarea>
+                    <textarea rows="10" cols="60" class="submit-fields" style="width:500px;" id="commenttext" name="commenttext" {if !$canedit}disabled{/if}>{$commenttext}</textarea>
                 </div>
                 <div id="commenttext.msg" class="badentry"></div></td>
         </tr>
@@ -20,11 +20,13 @@
                     <input type="hidden" name="cid" id="cid" value="-1">
                 {/if}
                 <input type="hidden" name="page" id="page" value="{$page}">
-                {sb_button text="$commenttype Comment" onclick="ProcessComment();" class="ok" id="acom" submit=false}&nbsp;
-                {sb_button text="Back" onclick="history.go(-1)" class="cancel" id="aback"}
+                {if $canedit}
+                    {sb_button text="$commenttype Comment" onclick="ProcessComment();" class="ok" id="acom" submit=false}&nbsp;
+                    {sb_button text="Back" onclick="history.go(-1)" class="cancel" id="aback"}
+                {/if}
             </td>
         </tr>
-        {foreach from="$othercomments" item="com"}
+        {foreach from=$othercomments item="com"}
             <tr>
                 <td colspan='3'>
                     <hr>
@@ -52,12 +54,12 @@
 {else}
     <h3 align="left">Communications Blocklist Overview - <i>Total Blocks: {$total_bans}</i></h3>
     <br />
-    {php} require (TEMPLATES_PATH . "/admin.comms.search.php");{/php}
+    {load_template file='admin.comms.search'}
     <br />
     <div id="banlist-nav">
         {$ban_nav}
     </div>
-    <a href="index.php?p=commslist&hideinactive={if $hidetext == 'Hide'}true{else}false{/if}{$searchlink|htmlspecialchars}" title="{$hidetext} inactive">{$hidetext} inactive</a>
+    <a href="index.php?p=commslist&hideinactive={if $hidetext == 'Hide'}true{else}false{/if}{$searchlink|smarty_htmlspecialchars}" title="{$hidetext} inactive">{$hidetext} inactive</a>
     <div id="banlist">
         <table width="100%" cellspacing="0" cellpadding="0" align="center" class="listtable">
             <tr>
@@ -82,7 +84,7 @@
                             {if empty($ban.player)}
                                 <i><font color="#677882">no nickname present</font></i>
                             {else}
-                                {$ban.player|escape:'html'|stripslashes}
+                                {$ban.player|escape:'html'|smarty_stripslashes}
                             {/if}
                         </div>
                         <div style="float:right;">
@@ -125,22 +127,22 @@
                                         {if empty($ban.player)}
                                             <i><font color="#677882">no nickname present</font></i>
                                         {else}
-                                            {$ban.player|escape:'html'|stripslashes}
+                                            {$ban.player|escape:'html'|smarty_stripslashes}
                                         {/if}
                                     </td>
                                     <!-- ###############[ Start Admin Controls ]################## -->
                                     {if $view_bans}
-                                        <td width="30%" rowspan="{if $ban.unbanned}13{else}11{/if}" class="listtable_2 opener">
+                                        <td width="30%" rowspan="{if isset($ban.unbanned)}13{else}11{/if}" class="listtable_2 opener">
                                             <div class="ban-edit">
                                                 <ul>
-                                                    {if $ban.unbanned && $ban.reban_link != false}
+                                                    {if isset($ban.unbanned) && $ban.reban_link != false}
                                                         <li>{$ban.reban_link}</li>
                                                     {/if}
                                                     <li>{$ban.addcomment}</li>
-                                                    {if ($ban.view_edit && !$ban.unbanned)}
+                                                    {if ($ban.view_edit && (!isset($ban.unbanned) || !$ban.unbanned))}
                                                         <li>{$ban.edit_link}</li>
                                                     {/if}
-                                                    {if ($ban.unbanned == false && $ban.view_unban)}
+                                                    {if isset($ban.unbanned) && ($ban.unbanned == false && $ban.view_unban)}
                                                         <li>{$ban.unban_link}</li>
                                                     {/if}
                                                     {if $ban.view_delete}
@@ -190,11 +192,11 @@
                                     <td width="20%" height="16" class="listtable_1">Block length</td>
                                     <td height="16" class="listtable_1">{$ban.banlength}</td>
                                 </tr>
-                                {if $ban.unbanned}
+                                {if isset($ban.unbanned)}
                                     <tr align="left">
                                         <td width="20%" height="16" class="listtable_1">Unblock reason</td>
                                         <td height="16" class="listtable_1">
-                                            {if $ban.ureason == ""}
+                                            {if !isset($ban.ureason) || $ban.ureason == ""}
                                                 <i><font color="#677882">no reason present</font></i>
                                             {else}
                                                 {$ban.ureason}

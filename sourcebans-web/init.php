@@ -2,7 +2,7 @@
 /*************************************************************************
 This file is part of SourceBans++
 
-SourceBans++ (c) 2014-2019 by SourceBans++ Dev Team
+SourceBans++ (c) 2014-2023 by SourceBans++ Dev Team
 
 The SourceBans++ Web panel is licensed under a
 Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -22,10 +22,10 @@ if (isset($_POST['dash_intro_text'])) {
 }
 //Filter all user inputs
 //Should be changed to individual filtering
-$_GET = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
-$_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
-$_COOKIE = filter_input_array(INPUT_COOKIE, FILTER_SANITIZE_STRING);
-//$_SERVER = filter_input_array(INPUT_SERVER, FILTER_SANITIZE_STRING);
+$_GET = filter_input_array(INPUT_GET, FILTER_SANITIZE_SPECIAL_CHARS);
+$_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_SPECIAL_CHARS);
+$_COOKIE = filter_input_array(INPUT_COOKIE, FILTER_SANITIZE_SPECIAL_CHARS);
+//$_SERVER = filter_input_array(INPUT_SERVER, FILTER_SANITIZE_SPECIAL_CHARS);
 
 // ---------------------------------------------------
 //  Directories
@@ -88,9 +88,9 @@ require_once(INCLUDES_PATH.'/CUserManager.php');
 require_once(INCLUDES_PATH.'/AdminTabs.php');
 
 $version = @json_decode(file_get_contents('configs/version.json'), true);
-define('SB_VERSION', isset($version['version']) ? $version['version'] : 'N/A');
-define('SB_GITREV', isset($version['git']) ? $version['git'] : 0);
-define('SB_DEV', isset($version['dev']) ? $version['dev'] : false);
+define('SB_VERSION', $version['version'] ?? 'N/A');
+define('SB_GITREV', $version['git'] ??  0);
+define('SB_DEV', $version['dev'] ?? false);
 
 // ---------------------------------------------------
 //  Setup our DB
@@ -103,10 +103,10 @@ if (!defined('SB_EMAIL')) {
     define('SB_EMAIL', '');
 }
 
-include_once(INCLUDES_PATH . "/adodb/adodb.inc.php");
-include_once(INCLUDES_PATH . "/adodb/adodb-errorhandler.inc.php");
+//include_once(INCLUDES_PATH . "/adodb/adodb.inc.php");
+//include_once(INCLUDES_PATH . "/adodb/adodb-errorhandler.inc.php");
 require_once(INCLUDES_PATH.'/Database.php');
-$GLOBALS['db'] = ADONewConnection("mysqli://".DB_USER.':'.urlencode(DB_PASS).'@'.DB_HOST.':'.DB_PORT.'/'.DB_NAME);
+$GLOBALS['db'] =  ADONewConnection("mysqli://".DB_USER.':'.urlencode(DB_PASS).'@'.DB_HOST.':'.DB_PORT.'/'.DB_NAME);
 $GLOBALS['PDO'] = new Database(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS, DB_PREFIX, DB_CHARSET);
 
 if (!is_object($GLOBALS['db'])) {
@@ -130,7 +130,6 @@ if (DEBUG_MODE) {
 
 Auth::init($GLOBALS['PDO']);
 
-define("TEAMBANS_DB_NAME", "sourcemod.teambans");
 // ---------------------------------------------------
 // Setup our user manager
 // ---------------------------------------------------
@@ -195,14 +194,17 @@ if (!@is_writable(SB_CACHE)) {
 require_once(INCLUDES_PATH.'/SmartyCustomFunctions.php');
 
 $theme = new Smarty();
-$theme->error_reporting = E_ALL ^ E_NOTICE;
+$theme->error_reporting = E_ALL;
 $theme->use_sub_dirs = false;
 $theme->compile_id = $theme_name;
-$theme->caching = false;
-$theme->template_dir = SB_THEMES . $theme_name;
-$theme->compile_dir = SB_CACHE;
-$theme->register_function('help_icon', 'smarty_function_help_icon');
-$theme->register_function('sb_button', 'smarty_function_sb_button');
+$theme->setCaching(Smarty::CACHING_OFF);
+$theme->setTemplateDir(SB_THEMES . $theme_name);
+$theme->setCacheDir(SB_CACHE);
+$theme->registerPlugin(Smarty::PLUGIN_FUNCTION, 'help_icon', 'smarty_function_help_icon');
+$theme->registerPlugin(Smarty::PLUGIN_FUNCTION, 'sb_button', 'smarty_function_sb_button');
+$theme->registerPlugin(Smarty::PLUGIN_FUNCTION, 'load_template', 'smarty_function_load_template');
+$theme->registerPlugin('modifier', 'smarty_stripslashes', 'smarty_stripslashes');
+$theme->registerPlugin('modifier', 'smarty_htmlspecialchars', 'smarty_htmlspecialchars');
 
 if ((isset($_GET['debug']) && $_GET['debug'] == 1) || DEBUG_MODE) {
     $theme->force_compile = true;

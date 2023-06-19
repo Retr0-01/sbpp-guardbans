@@ -2,7 +2,7 @@
 /*************************************************************************
 This file is part of SourceBans++
 
-SourceBans++ (c) 2014-2019 by SourceBans++ Dev Team
+SourceBans++ (c) 2014-2023 by SourceBans++ Dev Team
 
 The SourceBans++ Web panel is licensed under a
 Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -32,7 +32,7 @@ if (!Config::getBool('config.enablecomms')) {
     PageDie();
 }
 $BansPerPage = SB_BANS_PER_PAGE;
-$servers     = array();
+$servers     = [];
 global $userbank;
 function setPostKey()
 {
@@ -272,7 +272,7 @@ if (isset($_GET['searchText'])) {
     $searchlink = "";
 }
 
-$advcrit = array();
+$advcrit = [];
 if (isset($_GET['advSearch'])) {
     $value = trim($_GET['advSearch']);
     $type  = $_GET['advType'];
@@ -309,8 +309,8 @@ if (isset($_GET['advSearch'])) {
             break;
         case "date":
             $date    = explode(",", $value);
-            $time    = mktime(0, 0, 0, $date[1], $date[0], $date[2]);
-            $time2   = mktime(23, 59, 59, $date[1], $date[0], $date[2]);
+            $time    = mktime(0, 0, 0, (int)$date[1], (int)$date[0], (int)$date[2]);
+            $time2   = mktime(23, 59, 59, (int)$date[1], (int)$date[0], (int)$date[2]);
             $where   = "WHERE CO.created > ? AND CO.created < ?";
             $advcrit = array(
                 $time,
@@ -320,7 +320,7 @@ if (isset($_GET['advSearch'])) {
         case "length":
             $len         = explode(",", $value);
             $length_type = $len[0];
-            $length      = $len[1] * 60;
+            $length      = (int)$len[1] * 60;
             $where       = "WHERE CO.length ";
             switch ($length_type) {
                 case "e":
@@ -353,7 +353,7 @@ if (isset($_GET['advSearch'])) {
         case "admin":
             if (Config::getBool('banlist.hideadminname') && !$userbank->is_admin()) {
                 $where   = "";
-                $advcrit = array();
+                $advcrit = [];
             } else {
                 $where   = "WHERE CO.aid=?";
                 $advcrit = array(
@@ -381,14 +381,14 @@ if (isset($_GET['advSearch'])) {
                 );
             } else {
                 $where   = "";
-                $advcrit = array();
+                $advcrit = [];
             }
             break;
         default:
             $where             = "";
             $_GET['advType']   = "";
             $_GET['advSearch'] = "";
-            $advcrit           = array();
+            $advcrit           = [];
             break;
     }
 
@@ -425,9 +425,9 @@ if (!$res) {
 }
 
 $view_comments = false;
-$bans          = array();
+$bans          = [];
 while (!$res->EOF) {
-    $data = array();
+    $data = [];
 
     $data['ban_id'] = $res->fields['ban_id'];
     $data['type']   = $res->fields['type'];
@@ -459,7 +459,7 @@ while (!$res->EOF) {
     $data['communityid'] = $res->fields['community_id'];
     $steam2id            = $data['steamid'];
     $steam3parts         = explode(':', $steam2id);
-    $data['steamid3']    = '[U:1:' . ($steam3parts[2] * 2 + $steam3parts[1]) . ']';
+    $data['steamid3']    = \SteamID\SteamID::toSteam3($data['steamid']);
 
     if (Config::getBool('banlist.hideadminname') && !$userbank->is_admin()) {
         $data['admin'] = false;
@@ -492,7 +492,8 @@ while (!$res->EOF) {
             $data['ub_reason'] = "(Expired)";
         }
 
-        $data['ureason'] = stripslashes($res->fields['unban_reason']);
+        if (isset($res->fields['unban_reason']))
+            $data['ureason'] = stripslashes($res->fields['unban_reason']);
 
         $removedby         = $GLOBALS['db']->GetRow("SELECT user FROM `" . DB_PREFIX . "_admins` WHERE aid = '" . $res->fields['RemovedBy'] . "'");
         $data['removedby'] = "";
@@ -573,7 +574,7 @@ while (!$res->EOF) {
 
     //COMMENT STUFF
     //-----------------------------------
-    if ($userbank->is_admin()) {
+    if (Config::getBool('config.enablepubliccomments') || $userbank->is_admin()) {
         $view_comments = true;
         $commentres    = $GLOBALS['db']->Execute("SELECT cid, aid, commenttxt, added, edittime,
 											(SELECT user FROM `" . DB_PREFIX . "_admins` WHERE aid = C.aid) AS comname,
@@ -585,10 +586,10 @@ while (!$res->EOF) {
             if ($mute_count > 0 || $gag_count > 0) {
                 $delimiter = "&ensp;";
             }
-            $comment = array();
+            $comment = [];
             $morecom = 0;
             while (!$commentres->EOF) {
-                $cdata            = array();
+                $cdata            = [];
                 $cdata['morecom'] = ($morecom == 1 ? true : false);
                 if ($commentres->fields['aid'] == $userbank->GetAid() || $userbank->HasAccess(ADMIN_OWNER)) {
                     $cdata['editcomlink'] = CreateLinkR('<i class="fas fa-edit fa-lg"></i>', 'index.php?p=commslist&comment=' . $data['ban_id'] . '&ctype=C&cid=' . $commentres->fields['cid'] . $pagelink, 'Edit Comment');
@@ -710,9 +711,9 @@ if (isset($_GET["comment"])) {
         $_GET["comment"]
     ));
 
-    $ocomments = array();
+    $ocomments = [];
     while (!$cotherdata->EOF) {
-        $coment               = array();
+        $coment               = [];
         $coment['comname']    = $cotherdata->fields['comname'];
         $coment['added']      = Config::time($cotherdata->fields['added']);
         $coment['commenttxt'] = str_replace("\n", "<br />", $cotherdata->fields['commenttxt']);
@@ -734,9 +735,10 @@ if (isset($_GET["comment"])) {
     $theme->assign('commenttext', (isset($ctext) ? $ctext : ""));
     $theme->assign('ctype', $_GET["ctype"]);
     $theme->assign('cid', (isset($_GET["cid"]) ? $_GET["cid"] : ""));
+    $theme->assign('canedit', $userbank->is_admin());
 }
 $theme->assign('view_comments', $view_comments);
-$theme->assign('comment', (isset($_GET["comment"]) ? $_GET["comment"] : false));
+$theme->assign('comment', (isset($_GET["comment"]) && $view_comments ? $_GET["comment"] : false));
 //----------------------------------------
 
 unset($_SESSION['CountryFetchHndl']);

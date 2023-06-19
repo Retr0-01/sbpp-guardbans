@@ -41,15 +41,6 @@
                 </a>
             </li>
         {/if}
-        {if $access_bans}
-            <li>
-                <a href="index.php?p=admin&amp;c=teambans">
-                    <i class="fas fa-user-slash fa-5x"></i>
-                    <br/><br/>
-                    <b>Teambans</b>
-                </a>
-            </li>
-        {/if}
         {if $access_groups}
             <li>
                 <a href="index.php?p=admin&amp;c=groups">
@@ -99,12 +90,12 @@
             {/if}
         </td>
         <td class="listtable_1" style="border-right: 3px solid #CFCAC6; border-left: 3px solid #CFCAC6;">&nbsp;</td>
-		<td class="listtable_1" style="border-left: 3px solid #CFCAC6;">Total comms: <strong>{$total_comms}</strong></td>
+        <td class="listtable_1" style="border-left: 3px solid #CFCAC6;">Total comms: <strong>{$total_comms}</strong></td>
     </tr>
     <tr>
         <td class="listtable_1" id='versionmsg' style="border-right: 3px solid #CFCAC6;">Please Wait...</td>
         <td class="listtable_1" style="border-right: 3px solid #CFCAC6; border-left: 3px solid #CFCAC6;"><strong> </strong></td>
-		<td class="listtable_1" style="border-left: 3px solid #CFCAC6;">Connections Blocked: <strong>{$total_blocks}</strong></td>
+        <td class="listtable_1" style="border-left: 3px solid #CFCAC6;">Connections Blocked: <strong>{$total_blocks}</strong></td>
     </tr>
     <tr>
         <td>&nbsp;</td>

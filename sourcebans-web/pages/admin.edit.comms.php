@@ -2,7 +2,7 @@
 /*************************************************************************
 This file is part of SourceBans++
 
-SourceBans++ (c) 2014-2019 by SourceBans++ Dev Team
+SourceBans++ (c) 2014-2023 by SourceBans++ Dev Team
 
 The SourceBans++ Web panel is licensed under a
 Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -136,7 +136,9 @@ if (isset($_POST['name'])) {
             )
         );
         if ($_POST['banlength'] != $lengthrev->fields['length']) {
-            Log::add("m", "Block edited", "Block for ($lengthrev[authid]) has been updated. Before: length ($lengthrev[length]), type ($lengthrev[type]); Now: length ($_POST[banlength]), type ($_POST[type])");
+            Log::add("m", "Block edited", "Block for ({$lengthrev->fields['authid']}) has been updated."
+                . " Before: length ({$lengthrev->fields['length']}), type ({$lengthrev->fields['type']});"
+                . " Now: length ({$_POST['banlength']}), type ({$_POST['type']}).");
         }
         echo '<script>ShowBox("Block updated", "The block has been updated successfully", "green", "index.php?p=commslist' . $pagelink . '");</script>';
     }

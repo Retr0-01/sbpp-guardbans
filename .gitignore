@@ -47,14 +47,21 @@ Temporary Items
 /nbproject/
 
 # SourceBans++
-/config.php
-/cache/*.php
-/cache/*.tmp
-/cache/sessions/sess_*
+/web/config.php
+/web/cache/*.php
+/web/cache/*.tmp
+/web/cache/sessions/sess_*
 *.smx
 
 # VSCode
 .vscode
 
 # Composer vendor dir
-/includes/vendor
+/web/includes/vendor
+
+# Plugin compilation
+build/
+release/
+plugins/
+.sourceknight
+.venv

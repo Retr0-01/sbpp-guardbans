@@ -7,9 +7,9 @@
  */
 function route($fallback)
 {
-    $page = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_STRING);
-    $categorie = filter_input(INPUT_GET, 'c', FILTER_SANITIZE_STRING);
-    $option = filter_input(INPUT_GET, 'o', FILTER_SANITIZE_STRING);
+    $page = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_SPECIAL_CHARS);
+    $categorie = filter_input(INPUT_GET, 'c', FILTER_SANITIZE_SPECIAL_CHARS);
+    $option = filter_input(INPUT_GET, 'o', FILTER_SANITIZE_SPECIAL_CHARS);
 
     switch ($page) {
         case 'login':
@@ -31,8 +31,6 @@ function route($fallback)
             return ['Ban List', '/page.banlist.php'];
         case 'commslist':
             return ['Communications Block List', '/page.commslist.php'];
-         case "teambans":
-            return ["Jailbreak Guardbans List", "/page.teambans.php"];
         case 'servers':
             return ['Server List', '/page.servers.php'];
         case 'protest':
@@ -97,14 +95,6 @@ function route($fallback)
                         default:
                             return ['Comms', '/admin.comms.php'];
                     }
-                case 'teambans':
-                    CheckAdminAccess(ADMIN_OWNER|ADMIN_ADD_BAN|ADMIN_EDIT_OWN_BANS|ADMIN_EDIT_GROUP_BANS|ADMIN_EDIT_ALL_BANS|ADMIN_BAN_PROTESTS|ADMIN_BAN_SUBMISSIONS);
-                    switch ($option) {
-                        case 'edit':
-                            return ['Edit Teamban Details', '/admin.edit.teamban.php'];
-                        default:
-                            return ['Teambans', '/admin.teambans.php'];
-                    }
                 case 'mods':
                     CheckAdminAccess(ADMIN_OWNER|ADMIN_LIST_MODS|ADMIN_ADD_MODS|ADMIN_EDIT_MODS|ADMIN_DELETE_MODS);
                     switch ($option) {
@@ -145,7 +135,7 @@ function route($fallback)
  * @param null $title Unused
  * @param string $page
  */
-function build($title, $page)
+function build(string $title, string $page)
 {
     require_once(TEMPLATES_PATH.'/core/header.php');
     require_once(TEMPLATES_PATH.'/core/navbar.php');
