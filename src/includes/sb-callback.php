@@ -2,7 +2,7 @@
 /*************************************************************************
 This file is part of SourceBans++
 
-SourceBans++ (c) 2014-2019 by SourceBans++ Dev Team
+SourceBans++ (c) 2014-2023 by SourceBans++ Dev Team
 
 The SourceBans++ Web panel is licensed under a
 Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -17,11 +17,16 @@ Licensed under CC-BY-NC-SA 3.0
 Page: <http://www.sourcebans.net/> - <http://www.gameconnect.net/>
  *************************************************************************/
 
+use Sbpp\Mail\EmailType;
+use Sbpp\Mail\Mail;
+use Sbpp\Mail\Mailer;
 use SteamID\SteamID;
 use xPaw\SourceQuery\SourceQuery;
 
-require_once 'xajax.inc.php';
-require_once 'system-functions.php';
+require_once __DIR__ . '/xajax.inc.php';
+require_once __DIR__ . '/system-functions.php';
+require_once __DIR__ . '/vendor/autoload.php';
+
 $xajax = new xajax();
 //$xajax->debugOn();
 $xajax->setRequestURI('./index.php');
@@ -121,17 +126,17 @@ function Plogin(string $username, string $password, string $remember = '', strin
 }
 
 /**
- * @param  string $email
+ * @param string $email
  * @return xajaxResponse
  */
-function LostPassword($email)
+function LostPassword(string $email)
 {
     $objResponse = new xajaxResponse();
     $GLOBALS['PDO']->query('SELECT aid, user FROM `:prefix_admins` WHERE `email` = :email');
     $GLOBALS['PDO']->bind(':email', $email);
     $result = $GLOBALS['PDO']->single();
 
-    if (empty($result['aid']) || is_null($result['aid'])) {
+    if (empty($result['aid'])) {
         $objResponse->addScript(
             "ShowBox('Error', 'The email address you supplied is not registered on the system', 'red', '');"
         );
@@ -144,26 +149,22 @@ function LostPassword($email)
     $GLOBALS['PDO']->bind(':email', $email);
     $GLOBALS['PDO']->execute();
 
-    $host = Host::complete();
+    $passResetUrl = Host::complete(true) . "/index.php?p=lostpassword&email=$email&validation=$validation";
 
-    $message = "
-        Hello $result[user],\n
-        You have requested to have your password reset for your SourceBans++ account.\n
-        To complete this process, please click the following link.\n
-        NOTE: If you didnt request this reset, then simply ignore this email.\n\n
-        $host/index.php?p=lostpassword&email=$email&validation=$validation
-    ";
+    $isEmailSent = Mail::send($email, EmailType::PasswordReset, [
+        '{link}' => $passResetUrl,
+        '{name}' => $result['user'],
+        '{home}' => Host::complete(true)
+    ]);
 
-    $headers = [
-        'From' => SB_EMAIL,
-        'X-Mailer' => 'PHP/'.phpversion()
-    ];
+    if ($isEmailSent) {
+        $objResponse->addScript(
+            "ShowBox('Check E-Mail', 'Please check your email inbox (and spam) for a link which will help you reset your password.', 'blue', '');"
+        );
+    } else {
+      $objResponse->addScript("ShowBox('Error', 'Error sending email.', 'red', '')");
+    }
 
-    mail($email, "[SourceBans++] Password Reset", $message, $headers);
-
-    $objResponse->addScript(
-        "ShowBox('Check E-Mail', 'Please check your email inbox (and spam) for a link which will help you reset your password.', 'blue', '');"
-    );
     return $objResponse;
 }
 
@@ -405,7 +406,7 @@ function RemoveGroup($gid, $type)
     if (Config::getBool('config.enableadminrehashing')) {
         // rehash the settings out of the database on all servers
         $serveraccessq = $GLOBALS['db']->GetAll("SELECT sid FROM " . DB_PREFIX . "_servers WHERE enabled = 1;");
-        $allservers = array();
+        $allservers = [];
         foreach ($serveraccessq as $access) {
             if (!in_array($access['sid'], $allservers)) {
                 $allservers[] = $access['sid'];
@@ -689,7 +690,7 @@ function RemoveAdmin($aid)
     OR (asg.srv_group_id != '-1' AND asg.server_id = '-1'))
     AND (s.sid IN(asg.server_id) OR s.sid IN(sg.server_id)) AND s.enabled = 1"
             );
-            $allservers = array();
+            $allservers = [];
             foreach ($serveraccessq as $access) {
                 if (!in_array($access['sid'], $allservers)) {
                     $allservers[] = $access['sid'];
@@ -1344,7 +1345,7 @@ function AddAdmin(
     OR (asg.srv_group_id != '-1' AND asg.server_id = '-1'))
     AND (s.sid IN(asg.server_id) OR s.sid IN(sg.server_id)) AND s.enabled = 1"
             );
-            $allservers = array();
+            $allservers = [];
             foreach ($serveraccessq as $access) {
                 if (!in_array($access['sid'], $allservers)) {
                     $allservers[] = $access['sid'];
@@ -1991,15 +1992,11 @@ function AddBan($nickname, $type, $steam, $ip, $length, $dfile, $dname, $reason,
         $submail = $GLOBALS['db']->Execute(
             "SELECT name, email FROM ".DB_PREFIX."_submissions WHERE subid = '" . (int)$fromsub . "'"
         );
-        // Send an email when ban is accepted
-        $requri = substr($_SERVER['REQUEST_URI'], 0, strrpos($_SERVER['REQUEST_URI'], ".php") + 4);
-        $headers = 'From: submission@' . $_SERVER['HTTP_HOST'] . "\n" .
-            'X-Mailer: PHP/' . phpversion();
 
-        $message = "Hello,\n";
-        $message .= "Your ban submission was accepted by our admins.\nThank you for your support!\nClick the link below to view the current ban list.\n\nhttp://" . $_SERVER['HTTP_HOST'] . $requri . "?p=banlist";
+        Mail::send($submail->fields['email'], EmailType::BanAdded, [
+            '{home}' => Host::complete(true)
+        ]);
 
-        mail($submail->fields['email'], "[SourceBans] Ban Added", $message, $headers);
         $GLOBALS['db']->Execute(
             "UPDATE `" . DB_PREFIX . "_submissions` SET archiv = '2', archivedby = '".$userbank->GetAid()."' WHERE subid = '" . (int)$fromsub . "'"
         );
@@ -2418,7 +2415,7 @@ function EditAdminPerms($aid, $web_flags, $srv_flags)
     OR (asg.srv_group_id != '-1' AND asg.server_id = '-1'))
     AND (s.sid IN(asg.server_id) OR s.sid IN(sg.server_id)) AND s.enabled = 1"
         );
-        $allservers = array();
+        $allservers = [];
         foreach ($serveraccessq as $access) {
             if (!in_array($access['sid'], $allservers)) {
                 $allservers[] = $access['sid'];
@@ -2559,7 +2556,7 @@ function EditGroup($gid, $web_flags, $srv_flags, $type, $name, $overrides, $newO
         if (Config::getBool('config.enableadminrehashing')) {
             // rehash the settings out of the database on all servers
             $serveraccessq = $GLOBALS['db']->GetAll("SELECT sid FROM " . DB_PREFIX . "_servers WHERE enabled = 1;");
-            $allservers = array();
+            $allservers = [];
             foreach ($serveraccessq as $access) {
                 if (!in_array($access['sid'], $allservers)) {
                     $allservers[] = $access['sid'];
@@ -2638,7 +2635,6 @@ function SendRcon(int $sid, $command, $output)
     }
 
     $objResponse->addScript("scroll.toBottom(); $('cmd').value=''; $('cmd').disabled=''; $('rcon_btn').disabled=''");
-    Log::add("m", "RCON Sent", "RCON Command was sent to server ($rcon[ip]:$rcon[port])");
     return $objResponse;
 }
 
@@ -2680,11 +2676,16 @@ function SendMail($subject, $message, $type, $id)
         return $objResponse;
     }
 
-    $headers = "From: noreply@" . $_SERVER['HTTP_HOST'] . "\n" . 'X-Mailer: PHP/' . phpversion();
-    $m = @mail($email, '[SourceBans] ' . $subject, $message, $headers);
+    $isEmailSent = Mail::send($email, EmailType::Custom, [
+        '{message}' => $message,
+        '{subject}' => $subject,
+        '{admin}' => $username,
+        '{link}' => Host::complete(true),
+        '{home}' => Host::complete(true)
+    ], $subject);
 
 
-    if($m) {
+    if($isEmailSent) {
         $objResponse->addScript(
             "ShowBox('Email Sent', 'The email has been sent to the user.', 'green', 'index.php?p=admin&c=bans');"
         );
@@ -3129,7 +3130,7 @@ function BanMemberOfGroup($grpurl, $queue, $reason, $last)
         "SELECT CAST(MID(authid, 9, 1) AS UNSIGNED) + CAST('76561197960265728' AS UNSIGNED) + CAST(MID(authid, 11, 10) * 2 AS UNSIGNED) AS community_id FROM `:prefix_bans` WHERE RemoveType IS NULL;"
     );
     $bans = $GLOBALS['PDO']->resultset();
-    $already = array();
+    $already = [];
     foreach($bans as $ban) {
         $already[] = $ban["community_id"];
     }
@@ -3150,7 +3151,7 @@ function BanMemberOfGroup($grpurl, $queue, $reason, $last)
     getGroupMembers('https://steamcommunity.com/groups/' . $grpurl . '/memberslistxml?xml=1', $steamids);
 
     $steamids = array_chunk($steamids, 100);
-    $data = array();
+    $data = [];
 
     foreach ($steamids as $package) {
         $package = rawurlencode(json_encode($package));
@@ -3312,7 +3313,7 @@ function BanFriends($friendid, $name)
     set_time_limit(0);
     global $userbank, $username;
     $objResponse = new xajaxResponse();
-    $name = filter_var($name, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES);
+    $name = filter_var($name, FILTER_SANITIZE_SPECIAL_CHARS, FILTER_FLAG_NO_ENCODE_QUOTES);
     if (!Config::getBool('config.enablefriendsbanning') || !is_numeric($friendid)) {
         return $objResponse;
     }
@@ -3362,7 +3363,7 @@ function BanFriends($friendid, $name)
         $GLOBALS['PDO']->bindMultiple(
             [
             ':authid' => $steam,
-            ':name' => filter_var($fname, FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES),
+            ':name' => filter_var($fname, FILTER_SANITIZE_SPECIAL_CHARS, FILTER_FLAG_NO_ENCODE_QUOTES),
             ':reason' => "Steam Community Friend Ban (".$name.")",
             ':aid' => $userbank->GetAid(),
             ':admip' => $_SERVER['REMOTE_ADDR']

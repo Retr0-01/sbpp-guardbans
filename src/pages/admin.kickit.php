@@ -2,7 +2,7 @@
 /*************************************************************************
 This file is part of SourceBans++
 
-SourceBans++ (c) 2014-2019 by SourceBans++ Dev Team
+SourceBans++ (c) 2014-2023 by SourceBans++ Dev Team
 
 The SourceBans++ Web panel is licensed under a
 Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
@@ -136,10 +136,10 @@ function KickPlayer($check, int $sid, $num, $type)
 
 $servers = $GLOBALS['db']->Execute("SELECT ip, port, rcon FROM " . DB_PREFIX . "_servers WHERE enabled = 1 ORDER BY modid, sid;");
 $theme->assign('total', $servers->RecordCount());
-$serverlinks = array();
+$serverlinks = [];
 $num         = 0;
 while (!$servers->EOF) {
-    $info         = array();
+    $info         = [];
     $info['num']  = $num;
     $info['ip']   = $servers->fields["ip"];
     $info['port'] = $servers->fields["port"];
