@@ -1,8 +1,11 @@
 <?php
 //----------------------------------------
-// Jailbreak guardbans (teambans) administration through SourceBans.
-// Made by Retr0#1799 for the Wonderland.TF community :)
+// TF2 Jailbreak Redux guardbans (teambans) administration through SourceBans.
+// Originally made for the Wonderland.TF community.
+//
+// Made by Giannis "Retr0" Kepas
 //----------------------------------------
+
 use SteamID\SteamID;
 
 global $theme;
@@ -43,7 +46,7 @@ if (isset($_GET['a']) && $_GET['a'] == "unban" && isset($_GET['id']))
         die("Possible hacking attempt (URL Key mismatch)");
     }
     
-    $row = $GLOBALS['db']->GetRow("SELECT offender_name, offender_id, admin_id_sb_compatible FROM " . TEAMBANS_DB_NAME . " WHERE id = ? AND timeleft > 0", $_GET['id']);
+    $row = $GLOBALS['db']->GetRow("SELECT offender_name, offender_steamid, admin_id_sb_compatible FROM " . TEAMBANS_DB_NAME . " WHERE id = ? AND timeleft > 0", $_GET['id']);
 
     if (empty($row) || !$row) {
         echo "<script>ShowBox('Player Not Unguardbanned', 'The player's teamban was not removed, either they are already unbanned or this is not a valid teamban.', 'red', 'index.php?p=teambans$pagelink');</script>";
@@ -78,7 +81,7 @@ else if (isset($_GET['a']) && $_GET['a'] == "delete")
         PageDie();
     }
 
-    $row = $GLOBALS['db']->GetRow("SELECT offender_name, offender_id FROM " . TEAMBANS_DB_NAME . " WHERE id = ?", $_GET['id']);
+    $row = $GLOBALS['db']->GetRow("SELECT offender_name, offender_steamid FROM " . TEAMBANS_DB_NAME . " WHERE id = ?", $_GET['id']);
 
     if (empty($row) || !$row) {
         echo "<script>ShowBox('Player Not Unguardbanned', 'The player was not un-guardbanned, either already unbanned or not a valid ban.', 'red', 'index.php?p=teambans$pagelink');</script>";
@@ -122,7 +125,7 @@ if (!isset($_GET['search'])) {
         intval($BansPerPage)
     ));
 
-    $res_count  = $GLOBALS['db']->Execute("SELECT count(id) FROM " . TEAMBANS_DB_NAME . $hideinactiven);
+    $res_count  = $GLOBALS['db']->Execute("SELECT count(timestamp) FROM " . TEAMBANS_DB_NAME . $hideinactiven);
     $searchlink = "";
 } else {
     // 
@@ -146,7 +149,7 @@ if (!isset($_GET['search'])) {
             );
             break;
         case "steamid":
-            $where   = "WHERE offender_id = ?";
+            $where   = "WHERE offender_steamid = ?";
             $searchCriteria = array(
                preg_replace('/\[U:1[^.]/', '', substr(SteamID::toSteam3($searchValue), 0, -1))
             );
@@ -162,7 +165,7 @@ if (!isset($_GET['search'])) {
                 $where   = "";
                 $searchCriteria = array();
             } else {
-                $where   = "WHERE admin_id_sb_compatible=?";
+                $where   = "WHERE admin_steamid=?";
                 $searchCriteria = array(
                     $searchValue
                 );
@@ -184,17 +187,18 @@ if (!isset($_GET['search'])) {
     $res = $GLOBALS['db']->Execute("SELECT * FROM " . TEAMBANS_DB_NAME . " "  . $where . $hideinactive . " ORDER BY timestamp DESC
     LIMIT ?,?", array_merge($searchCriteria, array(intval($BansStart), intval($BansPerPage))));
 
-    $res_count  = $GLOBALS['db']->Execute("SELECT count(id) FROM " . TEAMBANS_DB_NAME . " "  . $where . $hideinactive, $searchCriteria);
+    $res_count  = $GLOBALS['db']->Execute("SELECT count(timestamp) FROM " . TEAMBANS_DB_NAME . " "  . $where . $hideinactive, $searchCriteria);
     $searchlink = "&search=" . $_GET['search'] . "&searchType=" . $_GET['searchType'];
+}
+
+if (!$res || !$res_count) {
+    echo "<h3>No Teambans Found</h3>";
+    PageDie();
 }
 
 $BanCount = $res_count->fields[0];
 if ($BansEnd > $BanCount) {
     $BansEnd = $BanCount;
-}
-if (!$res) {
-    echo "<h3>No Teambans Found</h3>";
-    PageDie();
 }
 
 //----------------------------------------
@@ -207,48 +211,52 @@ $bans          = array();
 while (!$res->EOF) {
     $data = array();
 
-    $data['ban_id'] = $res->fields['id'];
-    $data['ban_date'] = date(Config::get('config.dateformat'), strtotime($res->fields['timestamp']));
+    // The timestamp of a ban entry is the unique key in our db.
+    $data['ban_id'] = $res->fields['timestamp'];
+    $data['ban_date'] = date(Config::get('config.dateformat'), $res->fields['timestamp']);
     $data['player'] = addslashes($res->fields['offender_name']);
-    $data['reason'] = stripslashes($res->fields['reason']);
-    // offender_id is the Steam3 auth id.
-    $data['steamid'] = SteamID::toSteam2('[U:1:'. $res->fields['offender_id'] . ']');
+    $data['reason'] = "None Provided";
+    if ($res->fields['reason'] != '') $data['reason'] = stripslashes($res->fields['reason']);
+    $data['steamid'] = $res->fields['offender_steamid'];
     $data['steamid3'] = SteamID::toSteam3($data['steamid']);
     $data['communityid'] = SteamID::toSteam64($data['steamid']);
 
     if (Config::getBool('banlist.hideadminname') && !$userbank->is_admin()) {
         $data['admin'] = false;
     } else {
-        $adminres = $GLOBALS['db']->GetRow("SELECT user FROM `" . DB_PREFIX . "_admins` WHERE authid = ?", $res->fields['admin_id_sb_compatible']);
+        $adminres = $GLOBALS['db']->GetRow("SELECT user FROM `" . DB_PREFIX . "_admins` WHERE authid = ?", $res->fields['admin_steamid']);
 
         $data['admin'] = stripslashes($adminres['user']);
     }
 
-    $data['ban_length'] = $res->fields['length'] == 0 ? 'Permanent' : SecondsToString(intval($res->fields['length']));
-    $data['ban_timeleft'] = $res->fields['timeleft'] == 0 ? '' : SecondsToString(intval($res->fields['timeleft'])) . " /";
-
-    if ($res->fields['length'] == 0) {
+    // Jail redux stores guardban times as minutes.
+    $data['ban_length'] = $res->fields['bantime'] == 0 ? 'Permanent' : SecondsToString(intval($res->fields['bantime']) * 60);
+    $data['ban_timeleft'] = $res->fields['timeleft'] == 0 ? '' : SecondsToString(intval($res->fields['timeleft']) * 60) . " /";
+    
+    if ($res->fields['bantime'] == 0) {
         $data['class']     = "listtable_1_permanent";
+        $data['unbanned']  = false;
         $data['ub_reason'] = "";
     }
     else {
         $data['class']     = "listtable_1_banned";
+        $data['unbanned']  = false;
         $data['ub_reason'] = "";
     }
 
-    if (($res->fields['timeleft'] == '0' && $res->fields['timeleft'] < time()) && $res->fields['length'] !== $res->fields['timeleft']) {
+    if (($res->fields['timeleft'] == '0' && $res->fields['timeleft'] < time()) && $res->fields['bantime'] !== $res->fields['timeleft']) {
         $data['class']    = "listtable_1_unbanned";
         $data['unbanned']  = true;
         $data['ub_reason'] = "(Expired)";
     }
 
     // Create admin links.
-    $data['edit_link'] = CreateLinkR('<i class="fas fa-edit fa-lg"></i> Edit Details', "index.php?p=admin&c=teambans&o=edit" . $pagelink . "&id=" . $res->fields['id'] . "&key=" . $_SESSION['banlist_postkey']);
-    $data['unban_link']  = CreateLinkR('<i class="fas fa-undo fa-lg"></i> Unban Teamban', "#", "", "_self", false, "UnbanTeamBan('" . $res->fields['id'] . "', '" . $_SESSION['banlist_postkey'] . "', '" . $pagelink . "', '" . $data['player'] . "', 1, false);return false;");
-    $data['delete_link'] = CreateLinkR('<i class="fas fa-trash fa-lg"></i> Delete Teamban', "#", "", "_self", false, "RemoveTeamBan('" . $res->fields['id'] . "', '" . $_SESSION['banlist_postkey'] . "', '" . $pagelink . "', '" . $data['player'] . "', 0);return false;");
+    $data['edit_link'] = CreateLinkR('<i class="fas fa-edit fa-lg"></i> Edit Details', "index.php?p=admin&c=teambans&o=edit" . $pagelink . "&id=" . $res->fields['timestamp'] . "&key=" . $_SESSION['banlist_postkey']);
+    $data['unban_link']  = CreateLinkR('<i class="fas fa-undo fa-lg"></i> Unban Teamban', "#", "", "_self", false, "UnbanTeamBan('" . $res->fields['timestamp'] . "', '" . $_SESSION['banlist_postkey'] . "', '" . $pagelink . "', '" . $data['player'] . "', 1, false);return false;");
+    $data['delete_link'] = CreateLinkR('<i class="fas fa-trash fa-lg"></i> Delete Teamban', "#", "", "_self", false, "RemoveTeamBan('" . $res->fields['timestamp'] . "', '" . $_SESSION['banlist_postkey'] . "', '" . $pagelink . "', '" . $data['player'] . "', 0);return false;");
 
     // Show any previous teambans.
-    $teamban_history = $GLOBALS['db']->GetAll("SELECT id FROM " . TEAMBANS_DB_NAME . " WHERE offender_id = (?)", $res->fields['offender_id']);
+    $teamban_history = $GLOBALS['db']->GetAll("SELECT timestamp FROM " . TEAMBANS_DB_NAME . " WHERE offender_steamid = (?)", $res->fields['offender_steamid']);
     if (sizeof($teamban_history) > 1) {
         $data['prevoff_link'] = sizeof($teamban_history) . " " . CreateLinkR("(search)", "index.php?p=teambans&search=" . $data['steamid'] . "&searchType=steamid&Submit");
     } else {

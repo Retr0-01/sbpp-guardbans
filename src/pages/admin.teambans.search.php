@@ -1,4 +1,10 @@
 <?php
+//----------------------------------------
+// TF2 Jailbreak Redux guardbans (teambans) administration through SourceBans.
+// Originally made for the Wonderland.TF community.
+//
+// Made by Giannis "Retr0" Kepas
+//----------------------------------------
 
 global $userbank, $theme;
 $admin_list   = $GLOBALS['db']->GetAll("SELECT * FROM `" . DB_PREFIX . "_admins` WHERE gid > 0 ORDER BY user ASC");

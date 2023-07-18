@@ -52,9 +52,9 @@
 {else}
 <h3 align="left">Jailbreak Guardbans Overview - <i>Total Bans: {$total_bans}</i></h3>
 <br />
-{php} require (TEMPLATES_PATH . "/admin.teambans.search.php");{/php}
+{load_template file='admin.teambans.search'}
 <br />
-<div id="banlist-nav"><a href="index.php?p=teambans&hideinactive={if $hidetext == 'Hide'}true{else}false{/if}{$searchlink|htmlspecialchars}" title="{$hidetext} inactive">{$hidetext} inactive</a> | <i>Total Bans: {$total_bans}</i></div>
+<div id="banlist-nav"><a href="index.php?p=teambans&hideinactive={if $hidetext == 'Hide'}true{else}false{/if}{$searchlink|smarty_htmlspecialchars}" title="{$hidetext} inactive">{$hidetext} inactive</a> | <i>Total Bans: {$total_bans}</i></div>
 <div id="banlist">
 	<table width="100%" cellspacing="0" cellpadding="0" align="center" class="listtable">
 		<tr>
@@ -67,18 +67,14 @@
 			<td width="10%" height="16" class="listtable_top" align="center"><b>Time Left / Length</b></td>
 		</tr>
 		{foreach from=$ban_list item=ban name=banlist}
-			<tr class="opener tbl_out" onmouseout="this.className='tbl_out'" onmouseover="this.className='tbl_hover'"
-			{if $ban.server_id != 0}
-				onclick="xajax_ServerHostPlayers({$ban.server_id}, 'id', 'host_{$ban.ban_id}');"
-			{/if}
-			>
+			<tr class="opener tbl_out" onmouseout="this.className='tbl_out'" onmouseover="this.className='tbl_hover'">
         <td height="16" align="center" class="listtable_1">{$ban.ban_date}</td>
         <td height="16" class="listtable_1">
 		  <div style="float:left;">
           {if empty($ban.player)}
             <i><font color="#677882">no nickname present</font></i>
           {else}
-            {$ban.player|escape:'html'|stripslashes}
+            {$ban.player|escape:'html'|smarty_stripslashes}
           {/if}
 		  </div>
 		  {if $view_comments && $ban.commentdata != "None" && $ban.commentdata|@count > 0}
@@ -115,7 +111,7 @@
                   {if empty($ban.player)}
                     <i><font color="#677882">no nickname present</font></i>
                   {else}
-                    {$ban.player|escape:'html'|stripslashes}
+                    {$ban.player|escape:'html'|smarty_stripslashes}
                   {/if}
                 </td>
                 <!-- ###############[ Start Admin Controls ]################## -->
@@ -159,12 +155,10 @@
                   {/if}
                 </td>
               </tr>
-              {if $ban.type == 0}
               <tr align="left">
                 <td width="20%" height="16" class="listtable_1">Steam Community</td>
                 <td height="16" class="listtable_1"><a href="http://steamcommunity.com/profiles/{$ban.communityid}" target="_blank">{$ban.communityid}</a></td>
               </tr>
-              {/if}
               <tr align="left">
 								<td width="20%" height="16" class="listtable_1">Invoked on</td>
 								<td height="16" class="listtable_1">{$ban.ban_date}</td>

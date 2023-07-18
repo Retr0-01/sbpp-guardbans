@@ -130,7 +130,8 @@ if (DEBUG_MODE) {
 
 Auth::init($GLOBALS['PDO']);
 
-define("TEAMBANS_DB_NAME", "sourcemod.teambans");
+define("TEAMBANS_DB_NAME", "sourcemod.tf2jr_guardbans_logs");
+define("TEAMBANS_ACTIVE_DB_NAME", "sourcemod.tf2jr_guardbans");
 // ---------------------------------------------------
 // Setup our user manager
 // ---------------------------------------------------

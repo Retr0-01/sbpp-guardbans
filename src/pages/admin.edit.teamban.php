@@ -1,8 +1,11 @@
 <?php
 //----------------------------------------
-// Jailbreak guardbans (teambans) administration through SourceBans.
-// Made by Retr0#1799 for the Wonderland.TF community :)
+// TF2 Jailbreak Redux guardbans (teambans) administration through SourceBans.
+// Originally made for the Wonderland.TF community.
+//
+// Made by Giannis "Retr0" Kepas
 //----------------------------------------
+
 use SteamID\SteamID;
 
 global $theme;
@@ -23,7 +26,7 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     PageDie();
 }
 
-$res = $GLOBALS['db']->GetRow("SELECT * FROM " . TEAMBANS_DB_NAME . " WHERE id = {$_GET['id']}");
+$res = $GLOBALS['db']->GetRow("SELECT * FROM " . TEAMBANS_DB_NAME . " WHERE timestamp = {$_GET['timestamp']}");
 
 if (!$userbank->HasAccess(ADMIN_OWNER | ADMIN_EDIT_ALL_BANS) && (!$userbank->HasAccess(ADMIN_EDIT_OWN_BANS) && $res[8] != $userbank->GetAid()) && (!$userbank->HasAccess(ADMIN_EDIT_GROUP_BANS) && $res->fields['gid'] != $userbank->GetProperty('gid'))) {
     echo '<script>ShowBox("Error", "You don\'t have access to this!", "red", "index.php?p=admin&c=teambans");</script>';

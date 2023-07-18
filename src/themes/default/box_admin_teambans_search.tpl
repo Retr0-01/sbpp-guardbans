@@ -28,10 +28,10 @@
 			        <td class="listtable_1" >Admin</td>
 			        <td class="listtable_1" >
 						<select class="select" id="ban_admin" onmouseup="$('admin').checked = true" style="width: 95%;">
-							{foreach from="$admin_list" item="admin}
-								<option label="{$admin.user}" value="{$admin.authid}">{$admin.user}</option>
-							{/foreach}
-						</select>           
+							{foreach from=$admin_list item="admin"}
+								<option label="{$admin.user}" value="{$admin.aid}">{$admin.user}</option>
+					  		{/foreach}
+						</select>
 					</td> 
 				</tr>
                 {/if}

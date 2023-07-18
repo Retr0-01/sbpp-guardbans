@@ -1,8 +1,11 @@
 <?php
 //----------------------------------------
-// Jailbreak guardbans (teambans) administration through SourceBans.
-// Made by Retr0#1799 for the Wonderland.TF community :)
+// TF2 Jailbreak Redux guardbans (teambans) administration through SourceBans.
+// Originally made for the Wonderland.TF community.
+//
+// Made by Giannis "Retr0" Kepas
 //----------------------------------------
+
 global $userbank, $theme;
 
 if (!defined("IN_SB")) {
