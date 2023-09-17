@@ -1,3 +1,5 @@
+# THIS PROJECT IS DEPRECATED AND DOES NOT WORK
+
 <h1 align="center">
     <a href="https://sbpp.github.io"><img src="https://raw.githubusercontent.com/sbpp/sourcebans-pp/v1.x/.github/logo.png" height="25%" width="25%"/></a>
     <br/>
